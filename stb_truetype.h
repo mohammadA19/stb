@@ -426,17 +426,14 @@ int main(int arg, char **argv)
 ////   of C library functions used by stb_truetype, e.g. if you don't
 ////   link with the C runtime library.
 
-#ifdef STB_TRUETYPE_IMPLEMENTATION
+int ifloor(double x) =>   cast(int) floor(x);
+int iceil(double x)  =>   cast(int) ceil(x);
 
-   int ifloor(double x) =>   cast(int) floor(x);
-   int iceil(double x)  =>   cast(int) ceil(x);
-
-   // #define your own functions "malloc" / "free" to avoid malloc.h
-   #ifndef malloc
-   #include <stdlib.h>
-   #define malloc(x,u)  ((void)(u),malloc(x))
-   #define free(x,u)    ((void)(u),free(x))
-   #endif
+// #define your own functions "malloc" / "free" to avoid malloc.h
+#ifndef malloc
+#include <stdlib.h>
+#define malloc(x,u)  ((void)(u),malloc(x))
+#define free(x,u)    ((void)(u),free(x))
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -445,19 +442,6 @@ int main(int arg, char **argv)
 ////   INTERFACE
 ////
 ////
-
-#ifndef __STB_INCLUDE_STB_TRUETYPE_H__
-#define __STB_INCLUDE_STB_TRUETYPE_H__
-
-#ifdef STATIC
-#define DEF static
-#else
-#define DEF extern
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // private structure
 typedef struct
@@ -480,7 +464,7 @@ typedef struct
    float xoff,yoff,xadvance;
 } bakedchar;
 
-DEF int BakeFontBitmap(const ubyte *data, int offset,  // font location (use offset=0 for plain .ttf)
+public int BakeFontBitmap(const ubyte *data, int offset,  // font location (use offset=0 for plain .ttf)
                                 float pixel_height,                     // height of font in pixels
                                 ubyte *pixels, int pw, int ph,  // bitmap to be filled in
                                 int first_char, int num_chars,          // characters to bake
@@ -496,7 +480,7 @@ typedef struct
    float x1,y1,s1,t1; // bottom-right
 } aligned_quad;
 
-DEF void GetBakedQuad(const bakedchar *chardata, int pw, int ph,  // same data as above
+public void GetBakedQuad(const bakedchar *chardata, int pw, int ph,  // same data as above
                                int char_index,             // character to display
                                float *xpos, float *ypos,   // pointers to current position in screen pixel space
                                aligned_quad *q,      // output: quad to draw
@@ -511,7 +495,7 @@ DEF void GetBakedQuad(const bakedchar *chardata, int pw, int ph,  // same data a
 //
 // It's inefficient; you might want to c&p it and optimize it.
 
-DEF void GetScaledFontVMetrics(const ubyte *fontdata, int index, float size, float *ascent, float *descent, float *lineGap);
+public void GetScaledFontVMetrics(const ubyte *fontdata, int index, float size, float *ascent, float *descent, float *lineGap);
 // Query the font vertical metrics without having to create a font first.
 
 
@@ -535,7 +519,7 @@ typedef struct fontinfo fontinfo;
 typedef struct stbrp_rect stbrp_rect;
 #endif
 
-DEF int  PackBegin(pack_context *spc, ubyte *pixels, int width, int height, int stride_in_bytes, int padding, void *alloc_context);
+public int  PackBegin(pack_context *spc, ubyte *pixels, int width, int height, int stride_in_bytes, int padding, void *alloc_context);
 // Initializes a packing context stored in the passed-in pack_context.
 // Future calls using this context will pack characters into the bitmap passed
 // in here: a 1-channel bitmap that is width * height. stride_in_bytes is
@@ -546,12 +530,12 @@ DEF int  PackBegin(pack_context *spc, ubyte *pixels, int width, int height, int 
 //
 // Returns 0 on failure, 1 on success.
 
-DEF void PackEnd  (pack_context *spc);
+public void PackEnd  (pack_context *spc);
 // Cleans up the packing context and frees all memory.
 
 #define POINT_SIZE(x)   (-(x))
 
-DEF int  PackFontRange(pack_context *spc, const ubyte *fontdata, int font_index, float font_size,
+public int  PackFontRange(pack_context *spc, const ubyte *fontdata, int font_index, float font_size,
                                 int first_unicode_char_in_range, int num_chars_in_range, packedchar *chardata_for_range);
 // Creates character bitmaps from the font_index'th font found in fontdata (use
 // font_index=0 if you don't know what that is). It creates num_chars_in_range
@@ -576,13 +560,13 @@ typedef struct
    ubyte h_oversample, v_oversample; // don't set these, they're used internally
 } pack_range;
 
-DEF int  PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_index, pack_range *ranges, int num_ranges);
+public int  PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_index, pack_range *ranges, int num_ranges);
 // Creates character bitmaps from multiple ranges of characters stored in
 // ranges. This will usually create a better-packed bitmap than multiple
 // calls to PackFontRange. Note that you can call this multiple
 // times within a single PackBegin/PackEnd.
 
-DEF void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversample);
+public void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversample);
 // Oversampling a font increases the quality by allowing higher-quality subpixel
 // positioning, and is especially valuable at smaller text sizes.
 //
@@ -598,21 +582,21 @@ DEF void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversa
 // To use with PackFontRangesGather etc., you must set it before calls
 // call to PackFontRangesGatherRects.
 
-DEF void PackSetSkipMissingCodepoints(pack_context *spc, int skip);
+public void PackSetSkipMissingCodepoints(pack_context *spc, int skip);
 // If skip != 0, this tells stb_truetype to skip any codepoints for which
 // there is no corresponding glyph. If skip=0, which is the default, then
 // codepoints without a glyph recived the font's "missing character" glyph,
 // typically an empty box by convention.
 
-DEF void GetPackedQuad(const packedchar *chardata, int pw, int ph,  // same data as above
+public void GetPackedQuad(const packedchar *chardata, int pw, int ph,  // same data as above
                                int char_index,             // character to display
                                float *xpos, float *ypos,   // pointers to current position in screen pixel space
                                aligned_quad *q,      // output: quad to draw
                                int align_to_integer);
 
-DEF int  PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects);
-DEF void PackFontRangesPackRects(pack_context *spc, stbrp_rect *rects, int num_rects);
-DEF int  PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects);
+public int  PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects);
+public void PackFontRangesPackRects(pack_context *spc, stbrp_rect *rects, int num_rects);
+public int  PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects);
 // Calling these functions in sequence is roughly equivalent to calling
 // PackFontRanges(). If you more control over the packing of multiple
 // fonts, or if you want to pack custom data into a font texture, take a look
@@ -644,14 +628,14 @@ struct pack_context {
 //
 //
 
-DEF int GetNumberOfFonts(const ubyte *data);
+public int GetNumberOfFonts(const ubyte *data);
 // This function will determine the number of fonts in a font file.  TrueType
 // collection (.ttc) files may contain multiple fonts, while TrueType font
 // (.ttf) files only contain one font. The number of fonts can be used for
 // indexing with the previous function where the index is between zero and one
 // less than the total fonts. If an error occurs, -1 is returned.
 
-DEF int GetFontOffsetForIndex(const ubyte *data, int index);
+public int GetFontOffsetForIndex(const ubyte *data, int index);
 // Each .ttf/.ttc file may have more than one font. Each font has a sequential
 // index number starting from 0. Call this function to get the font offset for
 // a given index; it returns -1 if the index is out of range. A regular .ttf
@@ -680,7 +664,7 @@ struct fontinfo
    _buf fdselect;               // map from glyph to fontdict
 };
 
-DEF int InitFont(fontinfo *info, const ubyte *data, int offset);
+public int InitFont(fontinfo *info, const ubyte *data, int offset);
 // Given an offset into the file that defines a font, this function builds
 // the necessary cached info for the rest of the system. You must allocate
 // the fontinfo yourself, and InitFont will fill it out. You don't
@@ -692,7 +676,7 @@ DEF int InitFont(fontinfo *info, const ubyte *data, int offset);
 //
 // CHARACTER TO GLYPH-INDEX CONVERSIOn
 
-DEF int FindGlyphIndex(const fontinfo *info, int unicode_codepoint);
+public int FindGlyphIndex(const fontinfo *info, int unicode_codepoint);
 // If you're going to perform multiple operations on the same character
 // and you want a speed-up, call this function with the character you're
 // going to process, then use glyph-based functions instead of the
@@ -705,7 +689,7 @@ DEF int FindGlyphIndex(const fontinfo *info, int unicode_codepoint);
 // CHARACTER PROPERTIES
 //
 
-DEF float ScaleForPixelHeight(const fontinfo *info, float pixels);
+public float ScaleForPixelHeight(const fontinfo *info, float pixels);
 // computes a scale factor to produce a font whose "height" is 'pixels' tall.
 // Height is measured as the distance from the highest ascender to the lowest
 // descender; in other words, it's equivalent to calling GetFontVMetrics
@@ -713,12 +697,12 @@ DEF float ScaleForPixelHeight(const fontinfo *info, float pixels);
 //       scale = pixels / (ascent - descent)
 // so if you prefer to measure height by the ascent only, use a similar calculation.
 
-DEF float ScaleForMappingEmToPixels(const fontinfo *info, float pixels);
+public float ScaleForMappingEmToPixels(const fontinfo *info, float pixels);
 // computes a scale factor to produce a font whose EM size is mapped to
 // 'pixels' tall. This is probably what traditional APIs compute, but
 // I'm not positive.
 
-DEF void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *lineGap);
+public void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *lineGap);
 // ascent is the coordinate above the baseline the font extends; descent
 // is the coordinate below the baseline the font extends (i.e. it is typically negative)
 // lineGap is the spacing between one row's descent and the next row's ascent...
@@ -726,29 +710,29 @@ DEF void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *l
 //   these are expressed in unscaled coordinates, so you must multiply by
 //   the scale factor for a given size
 
-DEF int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDescent, int *typoLineGap);
+public int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDescent, int *typoLineGap);
 // analogous to GetFontVMetrics, but returns the "typographic" values from the OS/2
 // table (specific to MS/Windows TTF files).
 //
 // Returns 1 on success (table present), 0 on failure.
 
-DEF void GetFontBoundingBox(const fontinfo *info, int *x0, int *y0, int *x1, int *y1);
+public void GetFontBoundingBox(const fontinfo *info, int *x0, int *y0, int *x1, int *y1);
 // the bounding box around all possible characters
 
-DEF void GetCodepointHMetrics(const fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing);
+public void GetCodepointHMetrics(const fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing);
 // leftSideBearing is the offset from the current horizontal position to the left edge of the character
 // advanceWidth is the offset from the current horizontal position to the next horizontal position
 //   these are expressed in unscaled coordinates
 
-DEF int  GetCodepointKernAdvance(const fontinfo *info, int ch1, int ch2);
+public int  GetCodepointKernAdvance(const fontinfo *info, int ch1, int ch2);
 // an additional amount to add to the 'advance' value between ch1 and ch2
 
-DEF int GetCodepointBox(const fontinfo *info, int codepoint, int *x0, int *y0, int *x1, int *y1);
+public int GetCodepointBox(const fontinfo *info, int codepoint, int *x0, int *y0, int *x1, int *y1);
 // Gets the bounding box of the visible part of the glyph, in unscaled coordinates
 
-DEF void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWidth, int *leftSideBearing);
-DEF int  GetGlyphKernAdvance(const fontinfo *info, int glyph1, int glyph2);
-DEF int  GetGlyphBox(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1);
+public void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWidth, int *leftSideBearing);
+public int  GetGlyphKernAdvance(const fontinfo *info, int glyph1, int glyph2);
+public int  GetGlyphBox(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1);
 // as above, but takes one or more glyph indices for greater efficiency
 
 typedef struct kerningentry
@@ -758,8 +742,8 @@ typedef struct kerningentry
    int advance;
 } kerningentry;
 
-DEF int  GetKerningTableLength(const fontinfo *info);
-DEF int  GetKerningTable(const fontinfo *info, kerningentry* table, int table_length);
+public int  GetKerningTableLength(const fontinfo *info);
+public int  GetKerningTable(const fontinfo *info, kerningentry* table, int table_length);
 // Retrieves a complete list of all of the kerning pairs provided by the font
 // GetKerningTable never writes more than table_length entries and returns how many entries it did write.
 // The table will be sorted by (a.glyph1 == b.glyph1)?(a.glyph2 < b.glyph2):(a.glyph1 < b.glyph1)
@@ -789,11 +773,11 @@ DEF int  GetKerningTable(const fontinfo *info, kerningentry* table, int table_le
    } vertex;
 #endif
 
-DEF int IsGlyphEmpty(const fontinfo *info, int glyph_index);
+public int IsGlyphEmpty(const fontinfo *info, int glyph_index);
 // returns non-zero if nothing is drawn for this glyph
 
-DEF int GetCodepointShape(const fontinfo *info, int unicode_codepoint, vertex **vertices);
-DEF int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **vertices);
+public int GetCodepointShape(const fontinfo *info, int unicode_codepoint, vertex **vertices);
+public int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **vertices);
 // returns # of vertices and fills *vertices with the pointer to them
 //   these are expressed in "unscaled" coordinates
 //
@@ -804,12 +788,12 @@ DEF int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **vertices);
 // draws a quadratic bezier from previous endpoint to
 // its x,y, using cx,cy as the bezier control point.
 
-DEF void FreeShape(const fontinfo *info, vertex *vertices);
+public void FreeShape(const fontinfo *info, vertex *vertices);
 // frees the data allocated above
 
-DEF ubyte *FindSVGDoc(const fontinfo *info, int gl);
-DEF int GetCodepointSVG(const fontinfo *info, int unicode_codepoint, const char **svg);
-DEF int GetGlyphSVG(const fontinfo *info, int gl, const char **svg);
+public ubyte *FindSVGDoc(const fontinfo *info, int gl);
+public int GetCodepointSVG(const fontinfo *info, int unicode_codepoint, const char **svg);
+public int GetGlyphSVG(const fontinfo *info, int gl, const char **svg);
 // fills svg with the character's SVG data.
 // returns data size or 0 if SVG not found.
 
@@ -818,10 +802,10 @@ DEF int GetGlyphSVG(const fontinfo *info, int gl, const char **svg);
 // BITMAP RENDERING
 //
 
-DEF void FreeBitmap(ubyte *bitmap, void *userdata);
+public void FreeBitmap(ubyte *bitmap, void *userdata);
 // frees the bitmap allocated below
 
-DEF ubyte *GetCodepointBitmap(const fontinfo *info, float scale_x, float scale_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
+public ubyte *GetCodepointBitmap(const fontinfo *info, float scale_x, float scale_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
 // allocates a large-enough single-channel 8bpp bitmap and renders the
 // specified character/glyph at the specified scale into it, with
 // antialiasing. 0 is no coverage (transparent), 255 is fully covered (opaque).
@@ -830,44 +814,44 @@ DEF ubyte *GetCodepointBitmap(const fontinfo *info, float scale_x, float scale_y
 //
 // xoff/yoff are the offset it pixel space from the glyph origin to the top-left of the bitmap
 
-DEF ubyte *GetCodepointBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
+public ubyte *GetCodepointBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff);
 // the same as GetCodepoitnBitmap, but you can specify a subpixel
 // shift for the character
 
-DEF void MakeCodepointBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int codepoint);
+public void MakeCodepointBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int codepoint);
 // the same as GetCodepointBitmap, but you pass in storage for the bitmap
 // in the form of 'output', with row spacing of 'out_stride' bytes. the bitmap
 // is clipped to out_w/out_h bytes. Call GetCodepointBitmapBox to get the
 // width and height and positioning info for it first.
 
-DEF void MakeCodepointBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint);
+public void MakeCodepointBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint);
 // same as MakeCodepointBitmap, but you can specify a subpixel
 // shift for the character
 
-DEF void MakeCodepointBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int codepoint);
+public void MakeCodepointBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int codepoint);
 // same as MakeCodepointBitmapSubpixel, but prefiltering
 // is performed (see PackSetOversampling)
 
-DEF void GetCodepointBitmapBox(const fontinfo *font, int codepoint, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1);
+public void GetCodepointBitmapBox(const fontinfo *font, int codepoint, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1);
 // get the bbox of the bitmap centered around the glyph origin; so the
 // bitmap width is ix1-ix0, height is iy1-iy0, and location to place
 // the bitmap top left is (leftSideBearing*scale,iy0).
 // (Note that the bitmap uses y-increases-down, but the shape uses
 // y-increases-up, so CodepointBitmapBox and CodepointBox are inverted.)
 
-DEF void GetCodepointBitmapBoxSubpixel(const fontinfo *font, int codepoint, float scale_x, float scale_y, float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1);
+public void GetCodepointBitmapBoxSubpixel(const fontinfo *font, int codepoint, float scale_x, float scale_y, float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1);
 // same as GetCodepointBitmapBox, but you can specify a subpixel
 // shift for the character
 
 // the following functions are equivalent to the above functions, but operate
 // on glyph indices instead of Unicode codepoints (for efficiency)
-DEF ubyte *GetGlyphBitmap(const fontinfo *info, float scale_x, float scale_y, int glyph, int *width, int *height, int *xoff, int *yoff);
-DEF ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, int *width, int *height, int *xoff, int *yoff);
-DEF void MakeGlyphBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int glyph);
-DEF void MakeGlyphBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int glyph);
-DEF void MakeGlyphBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int glyph);
-DEF void GetGlyphBitmapBox(const fontinfo *font, int glyph, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1);
-DEF void GetGlyphBitmapBoxSubpixel(const fontinfo *font, int glyph, float scale_x, float scale_y,float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1);
+public ubyte *GetGlyphBitmap(const fontinfo *info, float scale_x, float scale_y, int glyph, int *width, int *height, int *xoff, int *yoff);
+public ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, int *width, int *height, int *xoff, int *yoff);
+public void MakeGlyphBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int glyph);
+public void MakeGlyphBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int glyph);
+public void MakeGlyphBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int glyph);
+public void GetGlyphBitmapBox(const fontinfo *font, int glyph, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1);
+public void GetGlyphBitmapBoxSubpixel(const fontinfo *font, int glyph, float scale_x, float scale_y,float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1);
 
 
 // @TODO: don't expose this structure
@@ -878,7 +862,7 @@ typedef struct
 } _bitmap;
 
 // rasterize a shape with quadratic beziers into a bitmap
-DEF void Rasterize(_bitmap *result,        // 1-channel bitmap to draw into
+public void Rasterize(_bitmap *result,        // 1-channel bitmap to draw into
                                float flatness_in_pixels,     // allowable error of curve in pixels
                                vertex *vertices,       // array of vertices defining shape
                                int num_verts,                // number of vertices in above array
@@ -892,11 +876,11 @@ DEF void Rasterize(_bitmap *result,        // 1-channel bitmap to draw into
 //
 // Signed Distance Function (or Field) rendering
 
-DEF void FreeSDF(ubyte *bitmap, void *userdata);
+public void FreeSDF(ubyte *bitmap, void *userdata);
 // frees the SDF bitmap allocated below
 
-DEF ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff);
-DEF ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff);
+public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff);
+public ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff);
 // These functions compute a discretized SDF field for a single character, suitable for storing
 // in a single-channel texture, sampling with bilinear filtering, and testing against
 // larger than some threshold to produce scalable fonts.
@@ -968,7 +952,7 @@ DEF ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint, in
 //             You have to have called InitFont() first.
 
 
-DEF int FindMatchingFont(const ubyte *fontdata, const char *name, int flags);
+public int FindMatchingFont(const ubyte *fontdata, const char *name, int flags);
 // returns the offset (not index) of the font that matches, or -1 if none
 //   if you use MACSTYLE_DONTCARE, use a font name like "Arial Bold".
 //   if you use any other flag, use a font name like "Arial"; this checks
@@ -979,11 +963,11 @@ DEF int FindMatchingFont(const ubyte *fontdata, const char *name, int flags);
 #define MACSTYLE_UNDERSCORE   4
 #define MACSTYLE_NONE         8   // <= not same as 0, this makes us check the bitfield is 0
 
-DEF int CompareUTF8toUTF16_bigendian(const char *s1, int len1, const char *s2, int len2);
+public int CompareUTF8toUTF16_bigendian(const char *s1, int len1, const char *s2, int len2);
 // returns 1/0 whether the first string interpreted as utf8 is identical to
 // the second string interpreted as big-endian utf16... useful for strings from next func
 
-DEF const char *GetFontNameString(const fontinfo *font, int *length, int platformID, int encodingID, int languageID, int nameID);
+public const char *GetFontNameString(const fontinfo *font, int *length, int platformID, int encodingID, int languageID, int nameID);
 // returns the string (which may be big-endian double byte, e.g. for unicode)
 // and puts the length in bytes in *length.
 //
@@ -1040,12 +1024,6 @@ enum { // languageID for PLATFORM_ID_MAC
    MAC_LANG_ITALIAN      =3 ,   MAC_LANG_CHINESE_TRAD =19
 };
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif // __STB_INCLUDE_STB_TRUETYPE_H__
-
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ////
@@ -1080,32 +1058,32 @@ typedef int _test_oversample_pow2[(MAX_OVERSAMPLE & (MAX_OVERSAMPLE-1)) == 0 ? 1
 // _buf helpers to parse data from file
 //
 
-static ubyte _buf_get8(_buf *b)
+private ubyte _buf_get8(_buf *b)
 {
    if (b->cursor >= b->size)
       return 0;
    return b->data[b->cursor++];
 }
 
-static ubyte _buf_peek8(_buf *b)
+private ubyte _buf_peek8(_buf *b)
 {
    if (b->cursor >= b->size)
       return 0;
    return b->data[b->cursor];
 }
 
-static void _buf_seek(_buf *b, int o)
+private void _buf_seek(_buf *b, int o)
 {
    assert(!(o > b->size || o < 0));
    b->cursor = (o > b->size || o < 0) ? b->size : o;
 }
 
-static void _buf_skip(_buf *b, int o)
+private void _buf_skip(_buf *b, int o)
 {
    _buf_seek(b, b->cursor + o);
 }
 
-static uint _buf_get(_buf *b, int n)
+private uint _buf_get(_buf *b, int n)
 {
    uint v = 0;
    int i;
@@ -1115,7 +1093,7 @@ static uint _buf_get(_buf *b, int n)
    return v;
 }
 
-static _buf _new_buf(const void *p, size_t size)
+private _buf _new_buf(const void *p, size_t size)
 {
    _buf r;
    assert(size < 0x40000000);
@@ -1128,7 +1106,7 @@ static _buf _new_buf(const void *p, size_t size)
 #define _buf_get16(b)  _buf_get((b), 2)
 #define _buf_get32(b)  _buf_get((b), 4)
 
-static _buf _buf_range(const _buf *b, int o, int s)
+private _buf _buf_range(const _buf *b, int o, int s)
 {
    _buf r = _new_buf(NULL, 0);
    if (o < 0 || s < 0 || o > b->size || s > b->size - o) return r;
@@ -1137,7 +1115,7 @@ static _buf _buf_range(const _buf *b, int o, int s)
    return r;
 }
 
-static _buf _cff_get_index(_buf *b)
+private _buf _cff_get_index(_buf *b)
 {
    int count, start, offsize;
    start = b->cursor;
@@ -1151,7 +1129,7 @@ static _buf _cff_get_index(_buf *b)
    return _buf_range(b, start, b->cursor - start);
 }
 
-static uint _cff_int(_buf *b)
+private uint _cff_int(_buf *b)
 {
    int b0 = _buf_get8(b);
    if (b0 >= 32 && b0 <= 246)       return b0 - 139;
@@ -1163,7 +1141,7 @@ static uint _cff_int(_buf *b)
    return 0;
 }
 
-static void _cff_skip_operand(_buf *b) {
+private void _cff_skip_operand(_buf *b) {
    int v, b0 = _buf_peek8(b);
    assert(b0 >= 28);
    if (b0 == 30) {
@@ -1178,7 +1156,7 @@ static void _cff_skip_operand(_buf *b) {
    }
 }
 
-static _buf _dict_get(_buf *b, int key)
+private _buf _dict_get(_buf *b, int key)
 {
    _buf_seek(b, 0);
    while (b->cursor < b->size) {
@@ -1193,7 +1171,7 @@ static _buf _dict_get(_buf *b, int key)
    return _buf_range(b, 0, 0);
 }
 
-static void _dict_get_ints(_buf *b, int key, int outcount, uint *out)
+private void _dict_get_ints(_buf *b, int key, int outcount, uint *out)
 {
    int i;
    _buf operands = _dict_get(b, key);
@@ -1201,13 +1179,13 @@ static void _dict_get_ints(_buf *b, int key, int outcount, uint *out)
       out[i] = _cff_int(&operands);
 }
 
-static int _cff_index_count(_buf *b)
+private int _cff_index_count(_buf *b)
 {
    _buf_seek(b, 0);
    return _buf_get16(b);
 }
 
-static _buf _cff_index_get(_buf b, int i)
+private _buf _cff_index_get(_buf b, int i)
 {
    int count, offsize, start, end;
    _buf_seek(&b, 0);
@@ -1233,15 +1211,15 @@ static _buf _cff_index_get(_buf b, int i)
 #define ttCHAR(p)     (* (byte *) (p))
 #define ttFixed(p)    ttLONG(p)
 
-static ushort ttUSHORT(ubyte *p) { return p[0]*256 + p[1]; }
-static short ttSHORT(ubyte *p)   { return p[0]*256 + p[1]; }
-static uint ttULONG(ubyte *p)  { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
-static int ttLONG(ubyte *p)    { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
+private ushort ttUSHORT(ubyte *p) { return p[0]*256 + p[1]; }
+private short ttSHORT(ubyte *p)   { return p[0]*256 + p[1]; }
+private uint ttULONG(ubyte *p)  { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
+private int ttLONG(ubyte *p)    { return (p[0]<<24) + (p[1]<<16) + (p[2]<<8) + p[3]; }
 
 #define tag4(p,c0,c1,c2,c3) ((p)[0] == (c0) && (p)[1] == (c1) && (p)[2] == (c2) && (p)[3] == (c3))
 #define tag(p,str)           tag4(p,str[0],str[1],str[2],str[3])
 
-static int _isfont(ubyte *font)
+private int _isfont(ubyte *font)
 {
    // check the version number
    if (tag4(font, '1',0,0,0))  return 1; // TrueType 1
@@ -1253,7 +1231,7 @@ static int _isfont(ubyte *font)
 }
 
 // @OPTIMIZE: binary search
-static uint _find_table(ubyte *data, uint fontstart, const char *tag)
+private uint _find_table(ubyte *data, uint fontstart, const char *tag)
 {
    int num_tables = ttUSHORT(data+fontstart+4);
    uint tabledir = fontstart + 12;
@@ -1266,7 +1244,7 @@ static uint _find_table(ubyte *data, uint fontstart, const char *tag)
    return 0;
 }
 
-static int GetFontOffsetForIndex_internal(ubyte *font_collection, int index)
+private int GetFontOffsetForIndex_internal(ubyte *font_collection, int index)
 {
    // if it's just a font, there's only one valid index
    if (_isfont(font_collection))
@@ -1285,7 +1263,7 @@ static int GetFontOffsetForIndex_internal(ubyte *font_collection, int index)
    return -1;
 }
 
-static int GetNumberOfFonts_internal(ubyte *font_collection)
+private int GetNumberOfFonts_internal(ubyte *font_collection)
 {
    // if it's just a font, there's only one valid font
    if (_isfont(font_collection))
@@ -1301,7 +1279,7 @@ static int GetNumberOfFonts_internal(ubyte *font_collection)
    return 0;
 }
 
-static _buf _get_subrs(_buf cff, _buf fontdict)
+private _buf _get_subrs(_buf cff, _buf fontdict)
 {
    uint subrsoff = 0, private_loc[2] = { 0, 0 };
    _buf pdict;
@@ -1315,7 +1293,7 @@ static _buf _get_subrs(_buf cff, _buf fontdict)
 }
 
 // since most people won't use this, find this table the first time it's needed
-static int _get_svg(fontinfo *info)
+private int _get_svg(fontinfo *info)
 {
    uint t;
    if (info->svg < 0) {
@@ -1330,7 +1308,7 @@ static int _get_svg(fontinfo *info)
    return info->svg;
 }
 
-static int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
+private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
 {
    uint cmap, t;
    int i,numTables;
@@ -1443,7 +1421,7 @@ static int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
    return 1;
 }
 
-DEF int FindGlyphIndex(const fontinfo *info, int unicode_codepoint)
+public int FindGlyphIndex(const fontinfo *info, int unicode_codepoint)
 {
    ubyte *data = info->data;
    uint index_map = info->index_map;
@@ -1536,12 +1514,12 @@ DEF int FindGlyphIndex(const fontinfo *info, int unicode_codepoint)
    return 0;
 }
 
-DEF int GetCodepointShape(const fontinfo *info, int unicode_codepoint, vertex **vertices)
+public int GetCodepointShape(const fontinfo *info, int unicode_codepoint, vertex **vertices)
 {
    return GetGlyphShape(info, FindGlyphIndex(info, unicode_codepoint), vertices);
 }
 
-static void setvertex(vertex *v, ubyte type, int x, int y, int cx, int cy)
+private void setvertex(vertex *v, ubyte type, int x, int y, int cx, int cy)
 {
    v->type = type;
    v->x = (short) x;
@@ -1550,7 +1528,7 @@ static void setvertex(vertex *v, ubyte type, int x, int y, int cx, int cy)
    v->cy = (short) cy;
 }
 
-static int _GetGlyfOffset(const fontinfo *info, int glyph_index)
+private int _GetGlyfOffset(const fontinfo *info, int glyph_index)
 {
    int g1,g2;
 
@@ -1570,9 +1548,9 @@ static int _GetGlyfOffset(const fontinfo *info, int glyph_index)
    return g1==g2 ? -1 : g1; // if length is 0, return -1
 }
 
-static int _GetGlyphInfoT2(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1);
+private int _GetGlyphInfoT2(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1);
 
-DEF int GetGlyphBox(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1)
+public int GetGlyphBox(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1)
 {
    if (info->cff.size) {
       _GetGlyphInfoT2(info, glyph_index, x0, y0, x1, y1);
@@ -1588,12 +1566,12 @@ DEF int GetGlyphBox(const fontinfo *info, int glyph_index, int *x0, int *y0, int
    return 1;
 }
 
-DEF int GetCodepointBox(const fontinfo *info, int codepoint, int *x0, int *y0, int *x1, int *y1)
+public int GetCodepointBox(const fontinfo *info, int codepoint, int *x0, int *y0, int *x1, int *y1)
 {
    return GetGlyphBox(info, FindGlyphIndex(info,codepoint), x0,y0,x1,y1);
 }
 
-DEF int IsGlyphEmpty(const fontinfo *info, int glyph_index)
+public int IsGlyphEmpty(const fontinfo *info, int glyph_index)
 {
    short numberOfContours;
    int g;
@@ -1605,7 +1583,7 @@ DEF int IsGlyphEmpty(const fontinfo *info, int glyph_index)
    return numberOfContours == 0;
 }
 
-static int _close_shape(vertex *vertices, int num_vertices, int was_off, int start_off,
+private int _close_shape(vertex *vertices, int num_vertices, int was_off, int start_off,
     int sx, int sy, int scx, int scy, int cx, int cy)
 {
    if (start_off) {
@@ -1621,7 +1599,7 @@ static int _close_shape(vertex *vertices, int num_vertices, int was_off, int sta
    return num_vertices;
 }
 
-static int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pvertices)
+private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pvertices)
 {
    short numberOfContours;
    ubyte *endPtsOfContours;
@@ -1858,7 +1836,7 @@ typedef struct
 
 #define _CSCTX_INIT(bounds) {bounds,0, 0,0, 0,0, 0,0,0,0, NULL, 0}
 
-static void _track_vertex(_csctx *c, int x, int y)
+private void _track_vertex(_csctx *c, int x, int y)
 {
    if (x > c->max_x || !c->started) c->max_x = x;
    if (y > c->max_y || !c->started) c->max_y = y;
@@ -1867,7 +1845,7 @@ static void _track_vertex(_csctx *c, int x, int y)
    c->started = 1;
 }
 
-static void _csctx_v(_csctx *c, ubyte type, int x, int y, int cx, int cy, int cx1, int cy1)
+private void _csctx_v(_csctx *c, ubyte type, int x, int y, int cx, int cy, int cx1, int cy1)
 {
    if (c->bounds) {
       _track_vertex(c, x, y);
@@ -1883,13 +1861,13 @@ static void _csctx_v(_csctx *c, ubyte type, int x, int y, int cx, int cy, int cx
    c->num_vertices++;
 }
 
-static void _csctx_close_shape(_csctx *ctx)
+private void _csctx_close_shape(_csctx *ctx)
 {
    if (ctx->first_x != ctx->x || ctx->first_y != ctx->y)
       _csctx_v(ctx, vline, (int)ctx->first_x, (int)ctx->first_y, 0, 0, 0, 0);
 }
 
-static void _csctx_rmove_to(_csctx *ctx, float dx, float dy)
+private void _csctx_rmove_to(_csctx *ctx, float dx, float dy)
 {
    _csctx_close_shape(ctx);
    ctx->first_x = ctx->x = ctx->x + dx;
@@ -1897,14 +1875,14 @@ static void _csctx_rmove_to(_csctx *ctx, float dx, float dy)
    _csctx_v(ctx, vmove, (int)ctx->x, (int)ctx->y, 0, 0, 0, 0);
 }
 
-static void _csctx_rline_to(_csctx *ctx, float dx, float dy)
+private void _csctx_rline_to(_csctx *ctx, float dx, float dy)
 {
    ctx->x += dx;
    ctx->y += dy;
    _csctx_v(ctx, vline, (int)ctx->x, (int)ctx->y, 0, 0, 0, 0);
 }
 
-static void _csctx_rccurve_to(_csctx *ctx, float dx1, float dy1, float dx2, float dy2, float dx3, float dy3)
+private void _csctx_rccurve_to(_csctx *ctx, float dx1, float dy1, float dx2, float dy2, float dx3, float dy3)
 {
    float cx1 = ctx->x + dx1;
    float cy1 = ctx->y + dy1;
@@ -1915,7 +1893,7 @@ static void _csctx_rccurve_to(_csctx *ctx, float dx1, float dy1, float dx2, floa
    _csctx_v(ctx, vcubic, (int)ctx->x, (int)ctx->y, (int)cx1, (int)cy1, (int)cx2, (int)cy2);
 }
 
-static _buf _get_subr(_buf idx, int n)
+private _buf _get_subr(_buf idx, int n)
 {
    int count = _cff_index_count(&idx);
    int bias = 107;
@@ -1929,7 +1907,7 @@ static _buf _get_subr(_buf idx, int n)
    return _cff_index_get(idx, n);
 }
 
-static _buf _cid_get_glyph_subrs(const fontinfo *info, int glyph_index)
+private _buf _cid_get_glyph_subrs(const fontinfo *info, int glyph_index)
 {
    _buf fdselect = info->fdselect;
    int nranges, start, end, v, fmt, fdselector = -1, i;
@@ -1957,7 +1935,7 @@ static _buf _cid_get_glyph_subrs(const fontinfo *info, int glyph_index)
    return _get_subrs(info->cff, _cff_index_get(info->fontdicts, fdselector));
 }
 
-static int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
+private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
 {
    int in_header = 1, maskbits = 0, subr_stack_height = 0, sp = 0, v, i, b0;
    int has_subrs = 0, clear_stack;
@@ -2216,7 +2194,7 @@ static int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
 #undef _CSERR
 }
 
-static int _GetGlyphShapeT2(const fontinfo *info, int glyph_index, vertex **pvertices)
+private int _GetGlyphShapeT2(const fontinfo *info, int glyph_index, vertex **pvertices)
 {
    // runs the charstring twice, once to count and once to output (to avoid realloc)
    _csctx count_ctx = _CSCTX_INIT(1);
@@ -2233,7 +2211,7 @@ static int _GetGlyphShapeT2(const fontinfo *info, int glyph_index, vertex **pver
    return 0;
 }
 
-static int _GetGlyphInfoT2(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1)
+private int _GetGlyphInfoT2(const fontinfo *info, int glyph_index, int *x0, int *y0, int *x1, int *y1)
 {
    _csctx c = _CSCTX_INIT(1);
    int r = _run_charstring(info, glyph_index, &c);
@@ -2244,7 +2222,7 @@ static int _GetGlyphInfoT2(const fontinfo *info, int glyph_index, int *x0, int *
    return r ? c.num_vertices : 0;
 }
 
-DEF int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **pvertices)
+public int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **pvertices)
 {
    if (!info->cff.size)
       return _GetGlyphShapeTT(info, glyph_index, pvertices);
@@ -2252,7 +2230,7 @@ DEF int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **pvertices)
       return _GetGlyphShapeT2(info, glyph_index, pvertices);
 }
 
-DEF void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWidth, int *leftSideBearing)
+public void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWidth, int *leftSideBearing)
 {
    ushort numOfLongHorMetrics = ttUSHORT(info->data+info->hhea + 34);
    if (glyph_index < numOfLongHorMetrics) {
@@ -2264,7 +2242,7 @@ DEF void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWid
    }
 }
 
-DEF int  GetKerningTableLength(const fontinfo *info)
+public int  GetKerningTableLength(const fontinfo *info)
 {
    ubyte *data = info->data + info->kern;
 
@@ -2279,7 +2257,7 @@ DEF int  GetKerningTableLength(const fontinfo *info)
    return ttUSHORT(data+10);
 }
 
-DEF int GetKerningTable(const fontinfo *info, kerningentry* table, int table_length)
+public int GetKerningTable(const fontinfo *info, kerningentry* table, int table_length)
 {
    ubyte *data = info->data + info->kern;
    int k, length;
@@ -2306,7 +2284,7 @@ DEF int GetKerningTable(const fontinfo *info, kerningentry* table, int table_len
    return length;
 }
 
-static int _GetGlyphKernInfoAdvance(const fontinfo *info, int glyph1, int glyph2)
+private int _GetGlyphKernInfoAdvance(const fontinfo *info, int glyph1, int glyph2)
 {
    ubyte *data = info->data + info->kern;
    uint needle, straw;
@@ -2336,7 +2314,7 @@ static int _GetGlyphKernInfoAdvance(const fontinfo *info, int glyph1, int glyph2
    return 0;
 }
 
-static int _GetCoverageIndex(ubyte *coverageTable, int glyph)
+private int _GetCoverageIndex(ubyte *coverageTable, int glyph)
 {
    ushort coverageFormat = ttUSHORT(coverageTable);
    switch (coverageFormat) {
@@ -2394,7 +2372,7 @@ static int _GetCoverageIndex(ubyte *coverageTable, int glyph)
    return -1;
 }
 
-static int  _GetGlyphClass(ubyte *classDefTable, int glyph)
+private int  _GetGlyphClass(ubyte *classDefTable, int glyph)
 {
    ushort classDefFormat = ttUSHORT(classDefTable);
    switch (classDefFormat)
@@ -2443,7 +2421,7 @@ static int  _GetGlyphClass(ubyte *classDefTable, int glyph)
 // Define to assert(x) if you want to break on unimplemented formats.
 #define GPOS_TODO_assert(x)
 
-static int _GetGlyphGPOSInfoAdvance(const fontinfo *info, int glyph1, int glyph2)
+private int _GetGlyphGPOSInfoAdvance(const fontinfo *info, int glyph1, int glyph2)
 {
    ushort lookupListOffset;
    ubyte *lookupList;
@@ -2557,7 +2535,7 @@ static int _GetGlyphGPOSInfoAdvance(const fontinfo *info, int glyph1, int glyph2
    return 0;
 }
 
-DEF int  GetGlyphKernAdvance(const fontinfo *info, int g1, int g2)
+public int  GetGlyphKernAdvance(const fontinfo *info, int g1, int g2)
 {
    int xAdvance = 0;
 
@@ -2569,26 +2547,26 @@ DEF int  GetGlyphKernAdvance(const fontinfo *info, int g1, int g2)
    return xAdvance;
 }
 
-DEF int  GetCodepointKernAdvance(const fontinfo *info, int ch1, int ch2)
+public int  GetCodepointKernAdvance(const fontinfo *info, int ch1, int ch2)
 {
    if (!info->kern && !info->gpos) // if no kerning table, don't waste time looking up both codepoint->glyphs
       return 0;
    return GetGlyphKernAdvance(info, FindGlyphIndex(info,ch1), FindGlyphIndex(info,ch2));
 }
 
-DEF void GetCodepointHMetrics(const fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing)
+public void GetCodepointHMetrics(const fontinfo *info, int codepoint, int *advanceWidth, int *leftSideBearing)
 {
    GetGlyphHMetrics(info, FindGlyphIndex(info,codepoint), advanceWidth, leftSideBearing);
 }
 
-DEF void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *lineGap)
+public void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *lineGap)
 {
    if (ascent ) *ascent  = ttSHORT(info->data+info->hhea + 4);
    if (descent) *descent = ttSHORT(info->data+info->hhea + 6);
    if (lineGap) *lineGap = ttSHORT(info->data+info->hhea + 8);
 }
 
-DEF int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDescent, int *typoLineGap)
+public int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDescent, int *typoLineGap)
 {
    int tab = _find_table(info->data, info->fontstart, "OS/2");
    if (!tab)
@@ -2599,7 +2577,7 @@ DEF int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDesc
    return 1;
 }
 
-DEF void GetFontBoundingBox(const fontinfo *info, int *x0, int *y0, int *x1, int *y1)
+public void GetFontBoundingBox(const fontinfo *info, int *x0, int *y0, int *x1, int *y1)
 {
    *x0 = ttSHORT(info->data + info->head + 36);
    *y0 = ttSHORT(info->data + info->head + 38);
@@ -2607,24 +2585,24 @@ DEF void GetFontBoundingBox(const fontinfo *info, int *x0, int *y0, int *x1, int
    *y1 = ttSHORT(info->data + info->head + 42);
 }
 
-DEF float ScaleForPixelHeight(const fontinfo *info, float height)
+public float ScaleForPixelHeight(const fontinfo *info, float height)
 {
    int fheight = ttSHORT(info->data + info->hhea + 4) - ttSHORT(info->data + info->hhea + 6);
    return (float) height / fheight;
 }
 
-DEF float ScaleForMappingEmToPixels(const fontinfo *info, float pixels)
+public float ScaleForMappingEmToPixels(const fontinfo *info, float pixels)
 {
    int unitsPerEm = ttUSHORT(info->data + info->head + 18);
    return pixels / unitsPerEm;
 }
 
-DEF void FreeShape(const fontinfo *info, vertex *v)
+public void FreeShape(const fontinfo *info, vertex *v)
 {
    free(v, info->userdata);
 }
 
-DEF ubyte *FindSVGDoc(const fontinfo *info, int gl)
+public ubyte *FindSVGDoc(const fontinfo *info, int gl)
 {
    int i;
    ubyte *data = info->data;
@@ -2641,7 +2619,7 @@ DEF ubyte *FindSVGDoc(const fontinfo *info, int gl)
    return 0;
 }
 
-DEF int GetGlyphSVG(const fontinfo *info, int gl, const char **svg)
+public int GetGlyphSVG(const fontinfo *info, int gl, const char **svg)
 {
    ubyte *data = info->data;
    ubyte *svg_doc;
@@ -2658,7 +2636,7 @@ DEF int GetGlyphSVG(const fontinfo *info, int gl, const char **svg)
    }
 }
 
-DEF int GetCodepointSVG(const fontinfo *info, int unicode_codepoint, const char **svg)
+public int GetCodepointSVG(const fontinfo *info, int unicode_codepoint, const char **svg)
 {
    return GetGlyphSVG(info, FindGlyphIndex(info, unicode_codepoint), svg);
 }
@@ -2668,7 +2646,7 @@ DEF int GetCodepointSVG(const fontinfo *info, int unicode_codepoint, const char 
 // antialiasing software rasterizer
 //
 
-DEF void GetGlyphBitmapBoxSubpixel(const fontinfo *font, int glyph, float scale_x, float scale_y,float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1)
+public void GetGlyphBitmapBoxSubpixel(const fontinfo *font, int glyph, float scale_x, float scale_y,float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1)
 {
    int x0=0,y0=0,x1,y1; // =0 suppresses compiler warning
    if (!GetGlyphBox(font, glyph, &x0,&y0,&x1,&y1)) {
@@ -2686,17 +2664,17 @@ DEF void GetGlyphBitmapBoxSubpixel(const fontinfo *font, int glyph, float scale_
    }
 }
 
-DEF void GetGlyphBitmapBox(const fontinfo *font, int glyph, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1)
+public void GetGlyphBitmapBox(const fontinfo *font, int glyph, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1)
 {
    GetGlyphBitmapBoxSubpixel(font, glyph, scale_x, scale_y,0.0f,0.0f, ix0, iy0, ix1, iy1);
 }
 
-DEF void GetCodepointBitmapBoxSubpixel(const fontinfo *font, int codepoint, float scale_x, float scale_y, float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1)
+public void GetCodepointBitmapBoxSubpixel(const fontinfo *font, int codepoint, float scale_x, float scale_y, float shift_x, float shift_y, int *ix0, int *iy0, int *ix1, int *iy1)
 {
    GetGlyphBitmapBoxSubpixel(font, FindGlyphIndex(font,codepoint), scale_x, scale_y,shift_x,shift_y, ix0,iy0,ix1,iy1);
 }
 
-DEF void GetCodepointBitmapBox(const fontinfo *font, int codepoint, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1)
+public void GetCodepointBitmapBox(const fontinfo *font, int codepoint, float scale_x, float scale_y, int *ix0, int *iy0, int *ix1, int *iy1)
 {
    GetCodepointBitmapBoxSubpixel(font, codepoint, scale_x, scale_y,0.0f,0.0f, ix0,iy0,ix1,iy1);
 }
@@ -2717,7 +2695,7 @@ typedef struct _hheap
    int    num_remaining_in_head_chunk;
 } _hheap;
 
-static void *_hheap_alloc(_hheap *hh, size_t size, void *userdata)
+private void *_hheap_alloc(_hheap *hh, size_t size, void *userdata)
 {
    if (hh->first_free) {
       void *p = hh->first_free;
@@ -2738,13 +2716,13 @@ static void *_hheap_alloc(_hheap *hh, size_t size, void *userdata)
    }
 }
 
-static void _hheap_free(_hheap *hh, void *p)
+private void _hheap_free(_hheap *hh, void *p)
 {
    *(void **) p = hh->first_free;
    hh->first_free = p;
 }
 
-static void _hheap_cleanup(_hheap *hh, void *userdata)
+private void _hheap_cleanup(_hheap *hh, void *userdata)
 {
    _hheap_chunk *c = hh->head;
    while (c) {
@@ -2782,7 +2760,7 @@ typedef struct _active_edge
 #define FIX        (1 << FIXSHIFT)
 #define FIXMASK    (FIX-1)
 
-static _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_point, void *userdata)
+private _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_point, void *userdata)
 {
    _active_edge *z = (_active_edge *) _hheap_alloc(hh, sizeof(*z), userdata);
    float dxdy = (e->x1 - e->x0) / (e->y1 - e->y0);
@@ -2804,7 +2782,7 @@ static _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_po
    return z;
 }
 #elif RASTERIZER_VERSION == 2
-static _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_point, void *userdata)
+private _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_point, void *userdata)
 {
    _active_edge *z = (_active_edge *) _hheap_alloc(hh, sizeof(*z), userdata);
    float dxdy = (e->x1 - e->x0) / (e->y1 - e->y0);
@@ -2829,7 +2807,7 @@ static _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_po
 // note: this routine clips fills that extend off the edges... ideally this
 // wouldn't happen, but it could happen if the truetype glyph bounding boxes
 // are wrong, or if the user supplies a too-small bitmap
-static void _fill_active_edges(ubyte *scanline, int len, _active_edge *e, int max_weight)
+private void _fill_active_edges(ubyte *scanline, int len, _active_edge *e, int max_weight)
 {
    // non-zero winding fill
    int x0=0, w=0;
@@ -2871,7 +2849,7 @@ static void _fill_active_edges(ubyte *scanline, int len, _active_edge *e, int ma
    }
 }
 
-static void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
+private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
 {
    _hheap hh = { 0, 0, 0 };
    _active_edge *active = NULL;
@@ -2975,7 +2953,7 @@ static void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsa
 
 // the edge passed in here does not cross the vertical line at x or the vertical line at x+1
 // (i.e. it has already been clipped to those)
-static void _handle_clipped_edge(float *scanline, int x, _active_edge *e, float x0, float y0, float x1, float y1)
+private void _handle_clipped_edge(float *scanline, int x, _active_edge *e, float x0, float y0, float x1, float y1)
 {
    if (y0 == y1) return;
    assert(y0 < y1);
@@ -3012,24 +2990,24 @@ static void _handle_clipped_edge(float *scanline, int x, _active_edge *e, float 
    }
 }
 
-static float _sized_trapezoid_area(float height, float top_width, float bottom_width)
+private float _sized_trapezoid_area(float height, float top_width, float bottom_width)
 {
    assert(top_width >= 0);
    assert(bottom_width >= 0);
    return (top_width + bottom_width) / 2.0f * height;
 }
 
-static float _position_trapezoid_area(float height, float tx0, float tx1, float bx0, float bx1)
+private float _position_trapezoid_area(float height, float tx0, float tx1, float bx0, float bx1)
 {
    return _sized_trapezoid_area(height, tx1 - tx0, bx1 - bx0);
 }
 
-static float _sized_triangle_area(float height, float width)
+private float _sized_triangle_area(float height, float width)
 {
    return height * width / 2;
 }
 
-static void _fill_active_edges_new(float *scanline, float *scanline_fill, int len, _active_edge *e, float y_top)
+private void _fill_active_edges_new(float *scanline, float *scanline_fill, int len, _active_edge *e, float y_top)
 {
    float y_bottom = y_top+1;
 
@@ -3244,7 +3222,7 @@ static void _fill_active_edges_new(float *scanline, float *scanline_fill, int le
 }
 
 // directly AA rasterize edges w/o supersampling
-static void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
+private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
 {
    _hheap hh = { 0, 0, 0 };
    _active_edge *active = NULL;
@@ -3346,7 +3324,7 @@ static void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsa
 
 #define _COMPARE(a,b)  ((a)->y0 < (b)->y0)
 
-static void _sort_edges_ins_sort(_edge *p, int n)
+private void _sort_edges_ins_sort(_edge *p, int n)
 {
    int i,j;
    for (i=1; i < n; ++i) {
@@ -3364,7 +3342,7 @@ static void _sort_edges_ins_sort(_edge *p, int n)
    }
 }
 
-static void _sort_edges_quicksort(_edge *p, int n)
+private void _sort_edges_quicksort(_edge *p, int n)
 {
    /* threshold for transitioning to insertion sort */
    while (n > 12) {
@@ -3426,7 +3404,7 @@ static void _sort_edges_quicksort(_edge *p, int n)
    }
 }
 
-static void _sort_edges(_edge *p, int n)
+private void _sort_edges(_edge *p, int n)
 {
    _sort_edges_quicksort(p, n);
    _sort_edges_ins_sort(p, n);
@@ -3437,7 +3415,7 @@ typedef struct
    float x,y;
 } _point;
 
-static void _rasterize(_bitmap *result, _point *pts, int *wcount, int windings, float scale_x, float scale_y, float shift_x, float shift_y, int off_x, int off_y, int invert, void *userdata)
+private void _rasterize(_bitmap *result, _point *pts, int *wcount, int windings, float scale_x, float scale_y, float shift_x, float shift_y, int off_x, int off_y, int invert, void *userdata)
 {
    float y_scale_inv = invert ? -scale_y : scale_y;
    _edge *e;
@@ -3494,7 +3472,7 @@ static void _rasterize(_bitmap *result, _point *pts, int *wcount, int windings, 
    free(e, userdata);
 }
 
-static void _add_point(_point *points, int n, float x, float y)
+private void _add_point(_point *points, int n, float x, float y)
 {
    if (!points) return; // during first pass, it's unallocated
    points[n].x = x;
@@ -3502,7 +3480,7 @@ static void _add_point(_point *points, int n, float x, float y)
 }
 
 // tessellate until threshold p is happy... @TODO warped to compensate for non-linear stretching
-static int _tesselate_curve(_point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
+private int _tesselate_curve(_point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float objspace_flatness_squared, int n)
 {
    // midpoint
    float mx = (x0 + 2*x1 + x2)/4;
@@ -3522,7 +3500,7 @@ static int _tesselate_curve(_point *points, int *num_points, float x0, float y0,
    return 1;
 }
 
-static void _tesselate_cubic(_point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float objspace_flatness_squared, int n)
+private void _tesselate_cubic(_point *points, int *num_points, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, float objspace_flatness_squared, int n)
 {
    // @TODO this "flatness" calculation is just made-up nonsense that seems to work well enough
    float dx0 = x1-x0;
@@ -3565,7 +3543,7 @@ static void _tesselate_cubic(_point *points, int *num_points, float x0, float y0
 }
 
 // returns number of contours
-static _point *FlattenCurves(vertex *vertices, int num_verts, float objspace_flatness, int **contour_lengths, int *num_contours, void *userdata)
+private _point *FlattenCurves(vertex *vertices, int num_verts, float objspace_flatness, int **contour_lengths, int *num_contours, void *userdata)
 {
    _point *points=0;
    int num_points=0;
@@ -3642,7 +3620,7 @@ error:
    return NULL;
 }
 
-DEF void Rasterize(_bitmap *result, float flatness_in_pixels, vertex *vertices, int num_verts, float scale_x, float scale_y, float shift_x, float shift_y, int x_off, int y_off, int invert, void *userdata)
+public void Rasterize(_bitmap *result, float flatness_in_pixels, vertex *vertices, int num_verts, float scale_x, float scale_y, float shift_x, float shift_y, int x_off, int y_off, int invert, void *userdata)
 {
    float scale            = scale_x > scale_y ? scale_y : scale_x;
    int winding_count      = 0;
@@ -3655,12 +3633,12 @@ DEF void Rasterize(_bitmap *result, float flatness_in_pixels, vertex *vertices, 
    }
 }
 
-DEF void FreeBitmap(ubyte *bitmap, void *userdata)
+public void FreeBitmap(ubyte *bitmap, void *userdata)
 {
    free(bitmap, userdata);
 }
 
-DEF ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, int *width, int *height, int *xoff, int *yoff)
+public ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int glyph, int *width, int *height, int *xoff, int *yoff)
 {
    int ix0,iy0,ix1,iy1;
    _bitmap gbm;
@@ -3700,12 +3678,12 @@ DEF ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float sca
    return gbm.pixels;
 }
 
-DEF ubyte *GetGlyphBitmap(const fontinfo *info, float scale_x, float scale_y, int glyph, int *width, int *height, int *xoff, int *yoff)
+public ubyte *GetGlyphBitmap(const fontinfo *info, float scale_x, float scale_y, int glyph, int *width, int *height, int *xoff, int *yoff)
 {
    return GetGlyphBitmapSubpixel(info, scale_x, scale_y, 0.0f, 0.0f, glyph, width, height, xoff, yoff);
 }
 
-DEF void MakeGlyphBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int glyph)
+public void MakeGlyphBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int glyph)
 {
    int ix0,iy0;
    vertex *vertices;
@@ -3724,32 +3702,32 @@ DEF void MakeGlyphBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w,
    free(vertices, info->userdata);
 }
 
-DEF void MakeGlyphBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int glyph)
+public void MakeGlyphBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int glyph)
 {
    MakeGlyphBitmapSubpixel(info, output, out_w, out_h, out_stride, scale_x, scale_y, 0.0f,0.0f, glyph);
 }
 
-DEF ubyte *GetCodepointBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff)
+public ubyte *GetCodepointBitmapSubpixel(const fontinfo *info, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint, int *width, int *height, int *xoff, int *yoff)
 {
    return GetGlyphBitmapSubpixel(info, scale_x, scale_y,shift_x,shift_y, FindGlyphIndex(info,codepoint), width,height,xoff,yoff);
 }
 
-DEF void MakeCodepointBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int codepoint)
+public void MakeCodepointBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int oversample_x, int oversample_y, float *sub_x, float *sub_y, int codepoint)
 {
    MakeGlyphBitmapSubpixelPrefilter(info, output, out_w, out_h, out_stride, scale_x, scale_y, shift_x, shift_y, oversample_x, oversample_y, sub_x, sub_y, FindGlyphIndex(info,codepoint));
 }
 
-DEF void MakeCodepointBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint)
+public void MakeCodepointBitmapSubpixel(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int codepoint)
 {
    MakeGlyphBitmapSubpixel(info, output, out_w, out_h, out_stride, scale_x, scale_y, shift_x, shift_y, FindGlyphIndex(info,codepoint));
 }
 
-DEF ubyte *GetCodepointBitmap(const fontinfo *info, float scale_x, float scale_y, int codepoint, int *width, int *height, int *xoff, int *yoff)
+public ubyte *GetCodepointBitmap(const fontinfo *info, float scale_x, float scale_y, int codepoint, int *width, int *height, int *xoff, int *yoff)
 {
    return GetCodepointBitmapSubpixel(info, scale_x, scale_y, 0.0f,0.0f, codepoint, width,height,xoff,yoff);
 }
 
-DEF void MakeCodepointBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int codepoint)
+public void MakeCodepointBitmap(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, int codepoint)
 {
    MakeCodepointBitmapSubpixel(info, output, out_w, out_h, out_stride, scale_x, scale_y, 0.0f,0.0f, codepoint);
 }
@@ -3760,7 +3738,7 @@ DEF void MakeCodepointBitmap(const fontinfo *info, ubyte *output, int out_w, int
 //
 // This is SUPER-CRAPPY packing to keep source code small
 
-static int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (use offset=0 for plain .ttf)
+private int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (use offset=0 for plain .ttf)
                                 float pixel_height,                     // height of font in pixels
                                 ubyte *pixels, int pw, int ph,  // bitmap to be filled in
                                 int first_char, int num_chars,          // characters to bake
@@ -3806,7 +3784,7 @@ static int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (u
    return bottom_y;
 }
 
-DEF void GetBakedQuad(const bakedchar *chardata, int pw, int ph, int char_index, float *xpos, float *ypos, aligned_quad *q, int opengl_fillrule)
+public void GetBakedQuad(const bakedchar *chardata, int pw, int ph, int char_index, float *xpos, float *ypos, aligned_quad *q, int opengl_fillrule)
 {
    float d3d_bias = opengl_fillrule ? 0 : -0.5f;
    float ipw = 1.0f / pw, iph = 1.0f / ph;
@@ -3864,7 +3842,7 @@ struct stbrp_rect
    int id,w,h,was_packed;
 };
 
-static void stbrp_init_target(stbrp_context *con, int pw, int ph, stbrp_node *nodes, int num_nodes)
+private void stbrp_init_target(stbrp_context *con, int pw, int ph, stbrp_node *nodes, int num_nodes)
 {
    con->width  = pw;
    con->height = ph;
@@ -3875,7 +3853,7 @@ static void stbrp_init_target(stbrp_context *con, int pw, int ph, stbrp_node *no
    _NOTUSED(num_nodes);
 }
 
-static void stbrp_pack_rects(stbrp_context *con, stbrp_rect *rects, int num_rects)
+private void stbrp_pack_rects(stbrp_context *con, stbrp_rect *rects, int num_rects)
 {
    int i;
    for (i=0; i < num_rects; ++i) {
@@ -3904,7 +3882,7 @@ static void stbrp_pack_rects(stbrp_context *con, stbrp_rect *rects, int num_rect
 // This is SUPER-AWESOME (tm Ryan Gordon) packing using stb_rect_pack.h. If
 // stb_rect_pack.h isn't available, it uses the BakeFontBitmap strategy.
 
-DEF int PackBegin(pack_context *spc, ubyte *pixels, int pw, int ph, int stride_in_bytes, int padding, void *alloc_context)
+public int PackBegin(pack_context *spc, ubyte *pixels, int pw, int ph, int stride_in_bytes, int padding, void *alloc_context)
 {
    stbrp_context *context = (stbrp_context *) malloc(sizeof(*context)            ,alloc_context);
    int            num_nodes = pw - padding;
@@ -3936,13 +3914,13 @@ DEF int PackBegin(pack_context *spc, ubyte *pixels, int pw, int ph, int stride_i
    return 1;
 }
 
-DEF void PackEnd  (pack_context *spc)
+public void PackEnd  (pack_context *spc)
 {
    free(spc->nodes    , spc->user_allocator_context);
    free(spc->pack_info, spc->user_allocator_context);
 }
 
-DEF void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversample)
+public void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversample)
 {
    assert(h_oversample <= MAX_OVERSAMPLE);
    assert(v_oversample <= MAX_OVERSAMPLE);
@@ -3952,14 +3930,14 @@ DEF void PackSetOversampling(pack_context *spc, uint h_oversample, uint v_oversa
       spc->v_oversample = v_oversample;
 }
 
-DEF void PackSetSkipMissingCodepoints(pack_context *spc, int skip)
+public void PackSetSkipMissingCodepoints(pack_context *spc, int skip)
 {
    spc->skip_missing = skip;
 }
 
 #define _OVER_MASK  (MAX_OVERSAMPLE-1)
 
-static void _h_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint kernel_width)
+private void _h_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint kernel_width)
 {
    ubyte buffer[MAX_OVERSAMPLE];
    int safe_w = w - kernel_width;
@@ -4021,7 +3999,7 @@ static void _h_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint 
    }
 }
 
-static void _v_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint kernel_width)
+private void _v_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint kernel_width)
 {
    ubyte buffer[MAX_OVERSAMPLE];
    int safe_h = h - kernel_width;
@@ -4083,7 +4061,7 @@ static void _v_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint 
    }
 }
 
-static float _oversample_shift(int oversample)
+private float _oversample_shift(int oversample)
 {
    if (!oversample)
       return 0.0f;
@@ -4096,7 +4074,7 @@ static float _oversample_shift(int oversample)
 }
 
 // rects array must be big enough to accommodate all characters in the given ranges
-DEF int PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects)
+public int PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects)
 {
    int i,j,k;
    int missing_glyph_added = 0;
@@ -4131,7 +4109,7 @@ DEF int PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pack_
    return k;
 }
 
-DEF void MakeGlyphBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int prefilter_x, int prefilter_y, float *sub_x, float *sub_y, int glyph)
+public void MakeGlyphBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, int out_w, int out_h, int out_stride, float scale_x, float scale_y, float shift_x, float shift_y, int prefilter_x, int prefilter_y, float *sub_x, float *sub_y, int glyph)
 {
    MakeGlyphBitmapSubpixel(info,
                                  output,
@@ -4155,7 +4133,7 @@ DEF void MakeGlyphBitmapSubpixelPrefilter(const fontinfo *info, ubyte *output, i
 }
 
 // rects array must be big enough to accommodate all characters in the given ranges
-DEF int PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects)
+public int PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info, pack_range *ranges, int num_ranges, stbrp_rect *rects)
 {
    int i,j,k, missing_glyph = -1, return_value = 1;
 
@@ -4244,12 +4222,12 @@ DEF int PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info, p
    return return_value;
 }
 
-DEF void PackFontRangesPackRects(pack_context *spc, stbrp_rect *rects, int num_rects)
+public void PackFontRangesPackRects(pack_context *spc, stbrp_rect *rects, int num_rects)
 {
    stbrp_pack_rects((stbrp_context *) spc->pack_info, rects, num_rects);
 }
 
-DEF int PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_index, pack_range *ranges, int num_ranges)
+public int PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_index, pack_range *ranges, int num_ranges)
 {
    fontinfo info;
    int i,j,n, return_value = 1;
@@ -4285,7 +4263,7 @@ DEF int PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_index,
    return return_value;
 }
 
-DEF int PackFontRange(pack_context *spc, const ubyte *fontdata, int font_index, float font_size,
+public int PackFontRange(pack_context *spc, const ubyte *fontdata, int font_index, float font_size,
             int first_unicode_codepoint_in_range, int num_chars_in_range, packedchar *chardata_for_range)
 {
    pack_range range;
@@ -4297,7 +4275,7 @@ DEF int PackFontRange(pack_context *spc, const ubyte *fontdata, int font_index, 
    return PackFontRanges(spc, fontdata, font_index, &range, 1);
 }
 
-DEF void GetScaledFontVMetrics(const ubyte *fontdata, int index, float size, float *ascent, float *descent, float *lineGap)
+public void GetScaledFontVMetrics(const ubyte *fontdata, int index, float size, float *ascent, float *descent, float *lineGap)
 {
    int i_ascent, i_descent, i_lineGap;
    float scale;
@@ -4310,7 +4288,7 @@ DEF void GetScaledFontVMetrics(const ubyte *fontdata, int index, float size, flo
    *lineGap = (float) i_lineGap * scale;
 }
 
-DEF void GetPackedQuad(const packedchar *chardata, int pw, int ph, int char_index, float *xpos, float *ypos, aligned_quad *q, int align_to_integer)
+public void GetPackedQuad(const packedchar *chardata, int pw, int ph, int char_index, float *xpos, float *ypos, aligned_quad *q, int align_to_integer)
 {
    float ipw = 1.0f / pw, iph = 1.0f / ph;
    const packedchar *b = chardata + char_index;
@@ -4345,7 +4323,7 @@ DEF void GetPackedQuad(const packedchar *chardata, int pw, int ph, int char_inde
 #define min(a,b)  ((a) < (b) ? (a) : (b))
 #define max(a,b)  ((a) < (b) ? (b) : (a))
 
-static int _ray_intersect_bezier(float orig[2], float ray[2], float q0[2], float q1[2], float q2[2], float hits[2][2])
+private int _ray_intersect_bezier(float orig[2], float ray[2], float q0[2], float q1[2], float q2[2], float hits[2][2])
 {
    float q0perp = q0[1]*ray[0] - q0[0]*ray[1];
    float q1perp = q1[1]*ray[0] - q1[0]*ray[1];
@@ -4409,12 +4387,12 @@ static int _ray_intersect_bezier(float orig[2], float ray[2], float q0[2], float
    }
 }
 
-static int equal(float *a, float *b)
+private int equal(float *a, float *b)
 {
    return (a[0] == b[0] && a[1] == b[1]);
 }
 
-static int _compute_crossings_x(float x, float y, int nverts, vertex *verts)
+private int _compute_crossings_x(float x, float y, int nverts, vertex *verts)
 {
    int i;
    float orig[2], ray[2] = { 1, 0 };
@@ -4482,7 +4460,7 @@ static int _compute_crossings_x(float x, float y, int nverts, vertex *verts)
    return winding;
 }
 
-static float _cuberoot( float x )
+private float _cuberoot( float x )
 {
    if (x<0)
       return -(float) pow(-x,1.0f/3.0f);
@@ -4491,7 +4469,7 @@ static float _cuberoot( float x )
 }
 
 // x^3 + a*x^2 + b*x + c = 0
-static int _solve_cubic(float a, float b, float c, float* r)
+private int _solve_cubic(float a, float b, float c, float* r)
 {
    float s = -a / 3;
    float p = b - a*a / 3;
@@ -4522,7 +4500,7 @@ static int _solve_cubic(float a, float b, float c, float* r)
    }
 }
 
-DEF ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff)
+public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff)
 {
    float scale_x = scale, scale_y = scale;
    int ix0,iy0,ix1,iy1;
@@ -4709,12 +4687,12 @@ DEF ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int paddin
    return data;
 }
 
-DEF ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff)
+public ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint, int padding, ubyte onedge_value, float pixel_dist_scale, int *width, int *height, int *xoff, int *yoff)
 {
    return GetGlyphSDF(info, scale, FindGlyphIndex(info, codepoint), padding, onedge_value, pixel_dist_scale, width, height, xoff, yoff);
 }
 
-DEF void FreeSDF(ubyte *bitmap, void *userdata)
+public void FreeSDF(ubyte *bitmap, void *userdata)
 {
    free(bitmap, userdata);
 }
@@ -4725,7 +4703,7 @@ DEF void FreeSDF(ubyte *bitmap, void *userdata)
 //
 
 // check if a utf8 string contains a prefix which is the utf16 string; if so return length of matching utf8 string
-static int _CompareUTF8toUTF16_bigendian_prefix(ubyte *s1, int len1, ubyte *s2, int len2)
+private int _CompareUTF8toUTF16_bigendian_prefix(ubyte *s1, int len1, ubyte *s2, int len2)
 {
    int i=0;
 
@@ -4764,14 +4742,14 @@ static int _CompareUTF8toUTF16_bigendian_prefix(ubyte *s1, int len1, ubyte *s2, 
    return i;
 }
 
-static int CompareUTF8toUTF16_bigendian_internal(char *s1, int len1, char *s2, int len2)
+private int CompareUTF8toUTF16_bigendian_internal(char *s1, int len1, char *s2, int len2)
 {
    return len1 == _CompareUTF8toUTF16_bigendian_prefix((ubyte*) s1, len1, (ubyte*) s2, len2);
 }
 
 // returns results in whatever encoding you request... but note that 2-byte encodings
 // will be BIG-ENDIAN... use CompareUTF8toUTF16_bigendian() to compare
-DEF const char *GetFontNameString(const fontinfo *font, int *length, int platformID, int encodingID, int languageID, int nameID)
+public const char *GetFontNameString(const fontinfo *font, int *length, int platformID, int encodingID, int languageID, int nameID)
 {
    int i,count,stringOffset;
    ubyte *fc = font->data;
@@ -4792,7 +4770,7 @@ DEF const char *GetFontNameString(const fontinfo *font, int *length, int platfor
    return NULL;
 }
 
-static int _matchpair(ubyte *fc, uint nm, ubyte *name, int nlen, int target_id, int next_id)
+private int _matchpair(ubyte *fc, uint nm, ubyte *name, int nlen, int target_id, int next_id)
 {
    int i;
    int count = ttUSHORT(fc+nm+2);
@@ -4839,7 +4817,7 @@ static int _matchpair(ubyte *fc, uint nm, ubyte *name, int nlen, int target_id, 
    return 0;
 }
 
-static int _matches(ubyte *fc, uint offset, ubyte *name, int flags)
+private int _matches(ubyte *fc, uint offset, ubyte *name, int flags)
 {
    int nlen = (int) strlen((ubyte *) name);
    uint nm,hd;
@@ -4868,7 +4846,7 @@ static int _matches(ubyte *fc, uint offset, ubyte *name, int flags)
    return 0;
 }
 
-static int FindMatchingFont_internal(ubyte *font_collection, char *name_utf8, int flags)
+private int FindMatchingFont_internal(ubyte *font_collection, char *name_utf8, int flags)
 {
    int i;
    for (i=0;;++i) {
@@ -4879,46 +4857,37 @@ static int FindMatchingFont_internal(ubyte *font_collection, char *name_utf8, in
    }
 }
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-qual"
-#endif
-
-DEF int BakeFontBitmap(const ubyte *data, int offset,
+public int BakeFontBitmap(const ubyte *data, int offset,
                                 float pixel_height, ubyte *pixels, int pw, int ph,
                                 int first_char, int num_chars, bakedchar *chardata)
 {
    return BakeFontBitmap_internal((ubyte *) data, offset, pixel_height, pixels, pw, ph, first_char, num_chars, chardata);
 }
 
-DEF int GetFontOffsetForIndex(const ubyte *data, int index)
+public int GetFontOffsetForIndex(const ubyte *data, int index)
 {
    return GetFontOffsetForIndex_internal((ubyte *) data, index);
 }
 
-DEF int GetNumberOfFonts(const ubyte *data)
+public int GetNumberOfFonts(const ubyte *data)
 {
    return GetNumberOfFonts_internal((ubyte *) data);
 }
 
-DEF int InitFont(fontinfo *info, const ubyte *data, int offset)
+public int InitFont(fontinfo *info, const ubyte *data, int offset)
 {
    return InitFont_internal(info, (ubyte *) data, offset);
 }
 
-DEF int FindMatchingFont(const ubyte *fontdata, const char *name, int flags)
+public int FindMatchingFont(const ubyte *fontdata, const char *name, int flags)
 {
    return FindMatchingFont_internal((ubyte *) fontdata, (char *) name, flags);
 }
 
-DEF int CompareUTF8toUTF16_bigendian(const char *s1, int len1, const char *s2, int len2)
+public int CompareUTF8toUTF16_bigendian(const char *s1, int len1, const char *s2, int len2)
 {
    return CompareUTF8toUTF16_bigendian_internal((char *) s1, len1, (char *) s2, len2);
 }
-
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
 
 #endif // STB_TRUETYPE_IMPLEMENTATION
 
