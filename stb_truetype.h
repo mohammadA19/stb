@@ -266,6 +266,10 @@
 //   Inline sort     :  6.54 s     5.65 s
 //   New rasterizer  :  5.63 s     5.00 s
 
+module stb_truetype;
+import core.stdc.math;
+import core.stdc.string;
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 ////
@@ -423,58 +427,15 @@ int main(int arg, char **argv)
 ////   link with the C runtime library.
 
 #ifdef STB_TRUETYPE_IMPLEMENTATION
-   typedef signed   char   int8;
 
-   // e.g. #define your own ifloor/iceil() to avoid math.h
-   #ifndef ifloor
-   #include <math.h>
-   #define ifloor(x)   ((int) floor(x))
-   #define iceil(x)    ((int) ceil(x))
-   #endif
-
-   #ifndef sqrt
-   #include <math.h>
-   #define sqrt(x)      sqrt(x)
-   #define pow(x,y)     pow(x,y)
-   #endif
-
-   #ifndef fmod
-   #include <math.h>
-   #define fmod(x,y)    fmod(x,y)
-   #endif
-
-   #ifndef cos
-   #include <math.h>
-   #define cos(x)       cos(x)
-   #define acos(x)      acos(x)
-   #endif
-
-   #ifndef fabs
-   #include <math.h>
-   #define fabs(x)      fabs(x)
-   #endif
+   int ifloor(double x) =>   cast(int) floor(x);
+   int iceil(double x)  =>   cast(int) ceil(x);
 
    // #define your own functions "malloc" / "free" to avoid malloc.h
    #ifndef malloc
    #include <stdlib.h>
    #define malloc(x,u)  ((void)(u),malloc(x))
    #define free(x,u)    ((void)(u),free(x))
-   #endif
-
-   #ifndef assert
-   #include <assert.h>
-   #define assert(x)    assert(x)
-   #endif
-
-   #ifndef strlen
-   #include <string.h>
-   #define strlen(x)    strlen(x)
-   #endif
-
-   #ifndef memcpy
-   #include <string.h>
-   #define memcpy       memcpy
-   #define memset       memset
    #endif
 #endif
 
