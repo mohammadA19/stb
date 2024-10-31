@@ -1108,7 +1108,7 @@ private _buf _new_buf(const void *p, size_t size)
 
 private _buf _buf_range(const _buf *b, int o, int s)
 {
-   _buf r = _new_buf(NULL, 0);
+   _buf r = _new_buf(null, 0);
    if (o < 0 || s < 0 || o > b.size || s > b.size - o) return r;
    r.data = b.data + o;
    r.size = s;
@@ -1284,10 +1284,10 @@ private _buf _get_subrs(_buf cff, _buf fontdict)
    uint subrsoff = 0, private_loc[2] = { 0, 0 };
    _buf pdict;
    _dict_get_ints(&fontdict, 18, 2, private_loc);
-   if (!private_loc[1] || !private_loc[0]) return _new_buf(NULL, 0);
+   if (!private_loc[1] || !private_loc[0]) return _new_buf(null, 0);
    pdict = _buf_range(&cff, private_loc[1], private_loc[0]);
    _dict_get_ints(&pdict, 19, 1, &subrsoff);
-   if (!subrsoff) return _new_buf(NULL, 0);
+   if (!subrsoff) return _new_buf(null, 0);
    _buf_seek(&cff, private_loc[1]+subrsoff);
    return _cff_get_index(&cff);
 }
@@ -1315,7 +1315,7 @@ private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
 
    info.data = data;
    info.fontstart = fontstart;
-   info.cff = _new_buf(NULL, 0);
+   info.cff = _new_buf(null, 0);
 
    cmap = _find_table(data, fontstart, "cmap");       // required
    info.loca = _find_table(data, fontstart, "loca"); // required
@@ -1340,8 +1340,8 @@ private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
       cff = _find_table(data, fontstart, "CFF ");
       if (!cff) return 0;
 
-      info.fontdicts = _new_buf(NULL, 0);
-      info.fdselect = _new_buf(NULL, 0);
+      info.fontdicts = _new_buf(null, 0);
+      info.fdselect = _new_buf(null, 0);
 
       // @TODO this should use size from table (not 512MB)
       info.cff = _new_buf(data+cff, 512*1024*1024);
@@ -1576,7 +1576,7 @@ public int IsGlyphEmpty(const fontinfo *info, int glyph_index)
    short numberOfContours;
    int g;
    if (info.cff.size)
-      return _GetGlyphInfoT2(info, glyph_index, NULL, NULL, NULL, NULL) == 0;
+      return _GetGlyphInfoT2(info, glyph_index, null, null, null, null) == 0;
    g = _GetGlyfOffset(info, glyph_index);
    if (g < 0) return 1;
    numberOfContours = ttSHORT(info.data + g);
@@ -1608,7 +1608,7 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
    int num_vertices = 0;
    int g = _GetGlyfOffset(info, glyph_index);
 
-   *pvertices = NULL;
+   *pvertices = null;
 
    if (g < 0) return 0;
 
@@ -1834,7 +1834,7 @@ struct _csctx
    int num_vertices;
 }
 
-#define _CSCTX_INIT(bounds) {bounds, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0}
+#define _CSCTX_INIT(bounds) {bounds, 0, 0, 0, 0, 0, 0, 0, 0, 0, null, 0}
 
 private void _track_vertex(_csctx *c, int x, int y)
 {
@@ -1903,7 +1903,7 @@ private _buf _get_subr(_buf idx, int n)
       bias = 1131;
    n += bias;
    if (n < 0 || n >= count)
-      return _new_buf(NULL, 0);
+      return _new_buf(null, 0);
    return _cff_index_get(idx, n);
 }
 
@@ -1931,7 +1931,7 @@ private _buf _cid_get_glyph_subrs(const fontinfo *info, int glyph_index)
          start = end;
       }
    }
-   if (fdselector == -1) _new_buf(NULL, 0);
+   if (fdselector == -1) _new_buf(null, 0);
    return _get_subrs(info.cff, _cff_index_get(info.fontdicts, fdselector));
 }
 
@@ -2207,7 +2207,7 @@ private int _GetGlyphShapeT2(const fontinfo *info, int glyph_index, vertex **pve
          return output_ctx.num_vertices;
       }
    }
-   *pvertices = NULL;
+   *pvertices = null;
    return 0;
 }
 
@@ -2628,7 +2628,7 @@ public int GetGlyphSVG(const fontinfo *info, int gl, const char **svg)
       return 0;
 
    svg_doc = FindSVGDoc(info, gl);
-   if (svg_doc != NULL) {
+   if (svg_doc != null) {
       *svg = (char *) data + info.svg + ttULONG(svg_doc + 4);
       return ttULONG(svg_doc + 8);
    } else {
@@ -2705,8 +2705,8 @@ private void *_hheap_alloc(_hheap *hh, size_t size, void *userdata)
       if (hh.num_remaining_in_head_chunk == 0) {
          int count = (size < 32 ? 2000 : size < 128 ? 800 : 100);
          _hheap_chunk *c = (_hheap_chunk *) malloc(sizeof(_hheap_chunk) + size * count, userdata);
-         if (c == NULL)
-            return NULL;
+         if (c == null)
+            return null;
          c.next = hh.head;
          hh.head = c;
          hh.num_remaining_in_head_chunk = count;
@@ -2764,7 +2764,7 @@ private _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_p
 {
    _active_edge *z = (_active_edge *) _hheap_alloc(hh, sizeof(*z), userdata);
    float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
-   assert(z != NULL);
+   assert(z != null);
    if (!z) return z;
 
    // round dx down to avoid overshooting
@@ -2786,7 +2786,7 @@ private _active_edge *_new_active(_hheap *hh, _edge *e, int off_x, float start_p
 {
    _active_edge *z = (_active_edge *) _hheap_alloc(hh, sizeof(*z), userdata);
    float dxdy = (e.x1 - e.x0) / (e.y1 - e.y0);
-   assert(z != NULL);
+   assert(z != null);
    //assert(e.y0 <= start_point);
    if (!z) return z;
    z.fdx = dxdy;
@@ -2852,7 +2852,7 @@ private void _fill_active_edges(ubyte *scanline, int len, _active_edge *e, int m
 private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
 {
    _hheap hh = { 0, 0, 0 };
-   _active_edge *active = NULL;
+   _active_edge *active = null;
    int y, j = 0;
    int max_weight = (255 / vsubsample);  // weight per vertical scanline
    int s; // vertical subsample index
@@ -2911,9 +2911,9 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
          while (e.y0 <= scan_y) {
             if (e.y1 > scan_y) {
                _active_edge *z = _new_active(&hh, e, off_x, scan_y, userdata);
-               if (z != NULL) {
+               if (z != null) {
                   // find insertion point
-                  if (active == NULL)
+                  if (active == null)
                      active = z;
                   else if (z.x < active.x) {
                      // insert at front
@@ -3225,7 +3225,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
 private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubsample, int off_x, int off_y, void *userdata)
 {
    _hheap hh = { 0, 0, 0 };
-   _active_edge *active = NULL;
+   _active_edge *active = null;
    int y, j = 0, i;
    float scanline_data[129], *scanline, *scanline2;
 
@@ -3268,7 +3268,7 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
       while (e.y0 <= scan_y_bottom) {
          if (e.y0 != e.y1) {
             _active_edge *z = _new_active(&hh, e, off_x, scan_y_top, userdata);
-            if (z != NULL) {
+            if (z != null) {
                if (j == 0 && off_y != 0) {
                   if (z.ey < scan_y_top) {
                      // this can happen due to subpixel positioning and some kind of fp rounding error i think
@@ -3571,7 +3571,7 @@ private _point *FlattenCurves(vertex *vertices, int num_verts, float objspace_fl
       float x = 0, y = 0;
       if (pass == 1) {
          points = (_point *) malloc(num_points * sizeof(points[0]), userdata);
-         if (points == NULL) goto error;
+         if (points == null) goto error;
       }
       num_points = 0;
       n= -1;
@@ -3617,14 +3617,14 @@ error:
    free(*contour_lengths, userdata);
    *contour_lengths = 0;
    *num_contours = 0;
-   return NULL;
+   return null;
 }
 
 public void Rasterize(_bitmap *result, float flatness_in_pixels, vertex *vertices, int num_verts, float scale_x, float scale_y, float shift_x, float shift_y, int x_off, int y_off, int invert, void *userdata)
 {
    float scale            = scale_x > scale_y ? scale_y : scale_x;
    int winding_count      = 0;
-   int *winding_lengths   = NULL;
+   int *winding_lengths   = null;
    _point *windings = FlattenCurves(vertices, num_verts, flatness_in_pixels / scale, &winding_lengths, &winding_count, userdata);
    if (windings) {
       _rasterize(result, windings, winding_lengths, winding_count, scale_x, scale_y, shift_x, shift_y, x_off, y_off, invert, userdata);
@@ -3649,7 +3649,7 @@ public ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float 
    if (scale_y == 0) {
       if (scale_x == 0) {
          free(vertices, info.userdata);
-         return NULL;
+         return null;
       }
       scale_y = scale_x;
    }
@@ -3659,7 +3659,7 @@ public ubyte *GetGlyphBitmapSubpixel(const fontinfo *info, float scale_x, float 
    // now we get the size
    gbm.w = (ix1 - ix0);
    gbm.h = (iy1 - iy0);
-   gbm.pixels = NULL; // in case we error
+   gbm.pixels = null; // in case we error
 
    if (width ) *width  = gbm.w;
    if (height) *height = gbm.h;
@@ -3747,7 +3747,7 @@ private int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (
    float scale;
    int x, y, bottom_y, i;
    fontinfo f;
-   f.userdata = NULL;
+   f.userdata = null;
    if (!InitFont(&f, data, offset))
       return -1;
    memset(pixels, 0, pw*ph); // background of 0 around pixels
@@ -3888,9 +3888,9 @@ public int PackBegin(pack_context *spc, ubyte *pixels, int pw, int ph, int strid
    int            num_nodes = pw - padding;
    stbrp_node    *nodes   = (stbrp_node    *) malloc(sizeof(*nodes  ) * num_nodes, alloc_context);
 
-   if (context == NULL || nodes == NULL) {
-      if (context != NULL) free(context, alloc_context);
-      if (nodes   != NULL) free(nodes  , alloc_context);
+   if (context == null || nodes == null) {
+      if (context != null) free(context, alloc_context);
+      if (nodes   != null) free(nodes  , alloc_context);
       return 0;
    }
 
@@ -4087,7 +4087,7 @@ public int PackFontRangesGatherRects(pack_context *spc, const fontinfo *info, pa
       ranges[i].v_oversample = (ubyte) spc.v_oversample;
       for (j = 0; j < ranges[i].num_chars; ++j) {
          int x0, y0, x1, y1;
-         int codepoint = ranges[i].array_of_unicode_codepoints == NULL ? ranges[i].first_unicode_codepoint_in_range + j : ranges[i].array_of_unicode_codepoints[j];
+         int codepoint = ranges[i].array_of_unicode_codepoints == null ? ranges[i].first_unicode_codepoint_in_range + j : ranges[i].array_of_unicode_codepoints[j];
          int glyph = FindGlyphIndex(info, codepoint);
          if (glyph == 0 && (spc.skip_missing || missing_glyph_added)) {
             rects[k].w = rects[k].h = 0;
@@ -4157,7 +4157,7 @@ public int PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info
          if (r.was_packed && r.w != 0 && r.h != 0) {
             packedchar *bc = &ranges[i].chardata_for_range[j];
             int advance, lsb, x0, y0, x1, y1;
-            int codepoint = ranges[i].array_of_unicode_codepoints == NULL ? ranges[i].first_unicode_codepoint_in_range + j : ranges[i].array_of_unicode_codepoints[j];
+            int codepoint = ranges[i].array_of_unicode_codepoints == null ? ranges[i].first_unicode_codepoint_in_range + j : ranges[i].array_of_unicode_codepoints[j];
             int glyph = FindGlyphIndex(info, codepoint);
             stbrp_coord pad = (stbrp_coord) spc.padding;
 
@@ -4247,7 +4247,7 @@ public int PackFontRanges(pack_context *spc, const ubyte *fontdata, int font_ind
       n += ranges[i].num_chars;
 
    rects = (stbrp_rect *) malloc(sizeof(*rects) * n, spc.user_allocator_context);
-   if (rects == NULL)
+   if (rects == null)
       return 0;
 
    info.userdata = spc.user_allocator_context;
@@ -4268,7 +4268,7 @@ public int PackFontRange(pack_context *spc, const ubyte *fontdata, int font_inde
 {
    pack_range range;
    range.first_unicode_codepoint_in_range = first_unicode_codepoint_in_range;
-   range.array_of_unicode_codepoints = NULL;
+   range.array_of_unicode_codepoints = null;
    range.num_chars                   = num_chars_in_range;
    range.chardata_for_range          = chardata_for_range;
    range.font_size                   = font_size;
@@ -4507,13 +4507,13 @@ public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int pad
    int w, h;
    ubyte *data;
 
-   if (scale == 0) return NULL;
+   if (scale == 0) return null;
 
    GetGlyphBitmapBoxSubpixel(info, glyph, scale, scale, 0.0f, 0.0f, &ix0,&iy0,&ix1,&iy1);
 
-   // if empty, return NULL
+   // if empty, return null
    if (ix0 == ix1 || iy0 == iy1)
-      return NULL;
+      return null;
 
    ix0 -= padding;
    iy0 -= padding;
@@ -4755,7 +4755,7 @@ public const char *GetFontNameString(const fontinfo *font, int *length, int plat
    ubyte *fc = font.data;
    uint offset = font.fontstart;
    uint nm = _find_table(fc, offset, "name");
-   if (!nm) return NULL;
+   if (!nm) return null;
 
    count = ttUSHORT(fc+nm+2);
    stringOffset = nm + ttUSHORT(fc+nm+4);
@@ -4767,7 +4767,7 @@ public const char *GetFontNameString(const fontinfo *font, int *length, int plat
          return (const char *) (fc+stringOffset+ttUSHORT(fc+loc+10));
       }
    }
-   return NULL;
+   return null;
 }
 
 private int _matchpair(ubyte *fc, uint nm, ubyte *name, int nlen, int target_id, int next_id)
