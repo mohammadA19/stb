@@ -218,7 +218,7 @@
 //    Compute the bounding box of the character. It will contain signed values
 //    relative to <current_point, baseline>. I.e. if it returns x0, y0, x1, y1,
 //    then the character should be displayed in the rectangle from
-//    <current_point+SF*x0, baseline+SF*y0> to <current_point+SF*x1, baseline+SF*y1).
+//    <current_point + SF*x0, baseline + SF*y0> to <current_point + SF*x1, baseline + SF*y1).
 //
 //  Advancing for the next character:
 //    Call GlyphHMetrics, and compute 'current_point += SF * advance'.
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
 
    for (j = 0; j < h; ++j) {
       for (i = 0; i < w; ++i)
-         putchar(" .:ioVM@"[bitmap[j*w+i]>>5]);
+         putchar(" .:ioVM@"[bitmap[j*w + i]>>5]);
       putchar('\n');
    }
    return 0;
@@ -401,8 +401,8 @@ int main(int arg, char **argv)
       // a sequence of characters, you really need to render each bitmap to a temp buffer, then
       // "alpha blend" that into the working buffer
       xpos += (advance * scale);
-      if (text[ch+1])
-         xpos += scale*GetCodepointKernAdvance(&font, text[ch],text[ch+1]);
+      if (text[ch + 1])
+         xpos += scale*GetCodepointKernAdvance(&font, text[ch],text[ch + 1]);
       ++ch;
    }
 
@@ -907,7 +907,7 @@ public ubyte * GetCodepointSDF(const fontinfo *info, float scale, int codepoint,
 //      pixel_dist_scale = 180/5.0 = 36.0
 //
 //      This will create an SDF bitmap in which the character is about 22 pixels
-//      high but the whole bitmap is about 22+5+5 = 32 pixels high. To produce a filled
+//      high but the whole bitmap is about 22 + 5 + 5 = 32 pixels high. To produce a filled
 //      shape, sample the SDF at each pixel and fill the pixel if the SDF value
 //      is greater than or equal to 180/255. (You'll actually want to antialias,
 //      which is beyond the scope of this example.) Additionally, you can compute
@@ -1196,7 +1196,7 @@ private _buf _cff_index_get(_buf b, int i)
    _buf_skip(&b, i*offsize);
    start = _buf_get(&b, offsize);
    end = _buf_get(&b, offsize);
-   return _buf_range(&b, 2+(count+1)*offsize+start, end - start);
+   return _buf_range(&b, 2 + (count + 1)*  offsize + start, end - start);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1233,13 +1233,13 @@ private int _isfont(ubyte *font)
 // @OPTIMIZE: binary search
 private uint _find_table(ubyte *data, uint fontstart, const char *tag)
 {
-   int num_tables = ttUSHORT(data+fontstart+4);
+   int num_tables = ttUSHORT(data + fontstart + 4);
    uint tabledir = fontstart + 12;
    int i;
    for (i = 0; i < num_tables; ++i) {
       uint loc = tabledir + 16*i;
-      if (tag(data+loc+0, tag))
-         return ttULONG(data+loc+8);
+      if (tag(data + loc + 0, tag))
+         return ttULONG(data + loc + 8);
    }
    return 0;
 }
@@ -1253,11 +1253,11 @@ private int GetFontOffsetForIndex_internal(ubyte *font_collection, int index)
    // check if it's a TTC
    if (tag(font_collection, "ttcf")) {
       // version 1?
-      if (ttULONG(font_collection+4) == 0x00010000 || ttULONG(font_collection+4) == 0x00020000) {
-         int n = ttLONG(font_collection+8);
+      if (ttULONG(font_collection + 4) == 0x00010000 || ttULONG(font_collection + 4) == 0x00020000) {
+         int n = ttLONG(font_collection + 8);
          if (index >= n)
             return -1;
-         return ttULONG(font_collection+12+index*4);
+         return ttULONG(font_collection + 12 + index*4);
       }
    }
    return -1;
@@ -1272,8 +1272,8 @@ private int GetNumberOfFonts_internal(ubyte *font_collection)
    // check if it's a TTC
    if (tag(font_collection, "ttcf")) {
       // version 1?
-      if (ttULONG(font_collection+4) == 0x00010000 || ttULONG(font_collection+4) == 0x00020000) {
-         return ttLONG(font_collection+8);
+      if (ttULONG(font_collection + 4) == 0x00010000 || ttULONG(font_collection + 4) == 0x00020000) {
+         return ttLONG(font_collection + 8);
       }
    }
    return 0;
@@ -1344,7 +1344,7 @@ private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
       info.fdselect = _new_buf(null, 0);
 
       // @TODO this should use size from table (not 512MB)
-      info.cff = _new_buf(data+cff, 512*1024*1024);
+      info.cff = _new_buf(data + cff, 512*1024*1024);
       b = info.cff;
 
       // read the header
@@ -1383,7 +1383,7 @@ private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
 
    t = _find_table(data, fontstart, "maxp");
    if (t)
-      info.numGlyphs = ttUSHORT(data+t+4);
+      info.numGlyphs = ttUSHORT(data + t + 4);
    else
       info.numGlyphs = 0xffff;
 
@@ -1397,27 +1397,27 @@ private int InitFont_internal(fontinfo *info, ubyte *data, int fontstart)
    for (i = 0; i < numTables; ++i) {
       uint encoding_record = cmap + 4 + 8 * i;
       // find an encoding we understand:
-      switch(ttUSHORT(data+encoding_record)) {
+      switch(ttUSHORT(data + encoding_record)) {
          case PLATFORM_ID_MICROSOFT:
-            switch (ttUSHORT(data+encoding_record+2)) {
+            switch (ttUSHORT(data + encoding_record + 2)) {
                case MS_EID_UNICODE_BMP:
                case MS_EID_UNICODE_FULL:
                   // MS/Unicode
-                  info.index_map = cmap + ttULONG(data+encoding_record+4);
+                  info.index_map = cmap + ttULONG(data + encoding_record + 4);
                   break;
             }
             break;
         case PLATFORM_ID_UNICODE:
             // Mac/iOS has these
             // all the encodingIDs are unicode, so we don't bother to check it
-            info.index_map = cmap + ttULONG(data+encoding_record+4);
+            info.index_map = cmap + ttULONG(data + encoding_record + 4);
             break;
       }
    }
    if (info.index_map == 0)
       return 0;
 
-   info.indexToLocFormat = ttUSHORT(data+info.head + 50);
+   info.indexToLocFormat = ttUSHORT(data + info.head + 50);
    return 1;
 }
 
@@ -1435,17 +1435,17 @@ public int FindGlyphIndex(const fontinfo *info, int unicode_codepoint)
    } else if (format == 6) {
       uint first = ttUSHORT(data + index_map + 6);
       uint count = ttUSHORT(data + index_map + 8);
-      if ((uint) unicode_codepoint >= first && (uint) unicode_codepoint < first+count)
+      if ((uint) unicode_codepoint >= first && (uint) unicode_codepoint < first + count)
          return ttUSHORT(data + index_map + 10 + (unicode_codepoint - first)*2);
       return 0;
    } else if (format == 2) {
       assert(0); // @TODO: high-byte mapping for japanese/chinese/korean
       return 0;
    } else if (format == 4) { // standard mapping for windows fonts: binary search collection of ranges
-      ushort segcount = ttUSHORT(data+index_map+6) >> 1;
-      ushort searchRange = ttUSHORT(data+index_map+8) >> 1;
-      ushort entrySelector = ttUSHORT(data+index_map+10);
-      ushort rangeShift = ttUSHORT(data+index_map+12) >> 1;
+      ushort segcount = ttUSHORT(data + index_map + 6) >> 1;
+      ushort searchRange = ttUSHORT(data + index_map + 8) >> 1;
+      ushort entrySelector = ttUSHORT(data + index_map + 10);
+      ushort rangeShift = ttUSHORT(data + index_map + 12) >> 1;
 
       // do a binary search of the segments
       uint endCount = index_map + 14;
@@ -1487,20 +1487,20 @@ public int FindGlyphIndex(const fontinfo *info, int unicode_codepoint)
          return ttUSHORT(data + offset + (unicode_codepoint-start)*2 + index_map + 14 + segcount*6 + 2 + 2*item);
       }
    } else if (format == 12 || format == 13) {
-      uint ngroups = ttULONG(data+index_map+12);
+      uint ngroups = ttULONG(data + index_map + 12);
       int low, high;
       low = 0; high = (int)ngroups;
       // Binary search the right group.
       while (low < high) {
          int mid = low + ((high-low) >> 1); // rounds down, so low <= mid < high
-         uint start_char = ttULONG(data+index_map+16+mid*12);
-         uint end_char = ttULONG(data+index_map+16+mid*12+4);
+         uint start_char = ttULONG(data + index_map + 16 + mid*12);
+         uint end_char = ttULONG(data + index_map + 16 + mid*12 + 4);
          if ((uint) unicode_codepoint < start_char)
             high = mid;
          else if ((uint) unicode_codepoint > end_char)
-            low = mid+1;
+            low = mid + 1;
          else {
-            uint start_glyph = ttULONG(data+index_map+16+mid*12+8);
+            uint start_glyph = ttULONG(data + index_map + 16 + mid*12 + 8);
             if (format == 12)
                return start_glyph + unicode_codepoint-start_char;
             else // format == 13
@@ -1588,7 +1588,7 @@ private int _close_shape(vertex *vertices, int num_vertices, int was_off, int st
 {
    if (start_off) {
       if (was_off)
-         setvertex(&vertices[num_vertices++], vcurve, (cx+scx)>>1, (cy+scy)>>1, cx, cy);
+         setvertex(&vertices[num_vertices++], vcurve, (cx + scx)>>1, (cy + scy)>>1, cx, cy);
       setvertex(&vertices[num_vertices++], vcurve, sx, sy, scx, scy);
    } else {
       if (was_off)
@@ -1623,7 +1623,7 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
       ins = ttUSHORT(data + g + 10 + numberOfContours * 2);
       points = data + g + 10 + numberOfContours * 2 + 2 + ins;
 
-      n = 1+ttUSHORT(endPtsOfContours + numberOfContours*2-2);
+      n = 1 + ttUSHORT(endPtsOfContours + numberOfContours*2-2);
 
       m = n + 2*numberOfContours;  // a loose bound on how many vertices we might need
       vertices = (vertex *) malloc(m * sizeof(vertices[0]), info.userdata);
@@ -1648,13 +1648,13 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
                flagcount = *points++;
          } else
             --flagcount;
-         vertices[off+i].type = flags;
+         vertices[off + i].type = flags;
       }
 
       // now load x coordinates
       x = 0;
       for (i = 0; i < n; ++i) {
-         flags = vertices[off+i].type;
+         flags = vertices[off + i].type;
          if (flags & 2) {
             short dx = *points++;
             x += (flags & 16) ? dx : -dx; // ???
@@ -1664,13 +1664,13 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
                points += 2;
             }
          }
-         vertices[off+i].x = (short) x;
+         vertices[off + i].x = (short) x;
       }
 
       // now load y coordinates
       y = 0;
       for (i = 0; i < n; ++i) {
-         flags = vertices[off+i].type;
+         flags = vertices[off + i].type;
          if (flags & 4) {
             short dy = *points++;
             y += (flags & 32) ? dy : -dy; // ???
@@ -1680,16 +1680,16 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
                points += 2;
             }
          }
-         vertices[off+i].y = (short) y;
+         vertices[off + i].y = (short) y;
       }
 
       // now convert them to our format
       num_vertices = 0;
       sx = sy = cx = cy = scx = scy = 0;
       for (i = 0; i < n; ++i) {
-         flags = vertices[off+i].type;
-         x     = (short) vertices[off+i].x;
-         y     = (short) vertices[off+i].y;
+         flags = vertices[off + i].type;
+         x     = (short) vertices[off + i].x;
+         y     = (short) vertices[off + i].y;
 
          if (next_move == i) {
             if (i != 0)
@@ -1702,15 +1702,15 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
                // where we can start, and we need to save some state for when we wraparound.
                scx = x;
                scy = y;
-               if (!(vertices[off+i+1].type & 1)) {
+               if (!(vertices[off + i + 1].type & 1)) {
                   // next point is also a curve point, so interpolate an on-point curve
-                  sx = (x + (int) vertices[off+i+1].x) >> 1;
-                  sy = (y + (int) vertices[off+i+1].y) >> 1;
+                  sx = (x + (int) vertices[off + i + 1].x) >> 1;
+                  sy = (y + (int) vertices[off + i + 1].y) >> 1;
                } else {
                   // otherwise just use the next point as our start point
-                  sx = (int) vertices[off+i+1].x;
-                  sy = (int) vertices[off+i+1].y;
-                  ++i; // we're using point i+1 as the starting point, so skip it
+                  sx = (int) vertices[off + i + 1].x;
+                  sy = (int) vertices[off + i + 1].y;
+                  ++i; // we're using point i + 1 as the starting point, so skip it
                }
             } else {
                sx = x;
@@ -1718,12 +1718,12 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
             }
             setvertex(&vertices[num_vertices++], vmove, sx, sy, 0, 0);
             was_off = 0;
-            next_move = 1 + ttUSHORT(endPtsOfContours+j*2);
+            next_move = 1 + ttUSHORT(endPtsOfContours + j*2);
             ++j;
          } else {
             if (!(flags & 1)) { // if it's a curve
                if (was_off) // two off-curve control points in a row means interpolate an on-curve midpoint
-                  setvertex(&vertices[num_vertices++], vcurve, (cx+x)>>1, (cy+y)>>1, cx, cy);
+                  setvertex(&vertices[num_vertices++], vcurve, (cx + x)>>1, (cy + y)>>1, cx, cy);
                cx = x;
                cy = y;
                was_off = 1;
@@ -1798,14 +1798,14 @@ private int _GetGlyphShapeTT(const fontinfo *info, int glyph_index, vertex **pve
                v.cy = (vertex_type)(n * (mtx[1]*x + mtx[3]*y + mtx[5]));
             }
             // Append vertices.
-            tmp = (vertex*)malloc((num_vertices+comp_num_verts)*sizeof(vertex), info.userdata);
+            tmp = (vertex*)malloc((num_vertices + comp_num_verts)*sizeof(vertex), info.userdata);
             if (!tmp) {
                if (vertices) free(vertices, info.userdata);
                if (comp_verts) free(comp_verts, info.userdata);
                return 0;
             }
             if (num_vertices > 0 && vertices) memcpy(tmp, vertices, num_vertices*sizeof(vertex));
-            memcpy(tmp+num_vertices, comp_verts, comp_num_verts*sizeof(vertex));
+            memcpy(tmp + num_vertices, comp_verts, comp_num_verts*sizeof(vertex));
             if (vertices) free(vertices, info.userdata);
             vertices = tmp;
             free(comp_verts, info.userdata);
@@ -1987,7 +1987,7 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
       case 0x05: // rlineto
          if (sp < 2) return _CSERR("rlineto stack");
          for (; i + 1 < sp; i += 2)
-            _csctx_rline_to(c, s[i], s[i+1]);
+            _csctx_rline_to(c, s[i], s[i + 1]);
          break;
 
       // hlineto/vlineto and vhcurveto/hvcurveto alternate horizontal and vertical
@@ -2016,11 +2016,11 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
          if (sp < 4) return _CSERR("vhcurveto stack");
          for (;;) {
             if (i + 3 >= sp) break;
-            _csctx_rccurve_to(c, 0, s[i], s[i+1], s[i+2], s[i+3], (sp - i == 5) ? s[i + 4] : 0.0f);
+            _csctx_rccurve_to(c, 0, s[i], s[i + 1], s[i + 2], s[i + 3], (sp - i == 5) ? s[i + 4] : 0.0f);
             i += 4;
       hvcurveto:
             if (i + 3 >= sp) break;
-            _csctx_rccurve_to(c, s[i], 0, s[i+1], s[i+2], (sp - i == 5) ? s[i+4] : 0.0f, s[i+3]);
+            _csctx_rccurve_to(c, s[i], 0, s[i + 1], s[i + 2], (sp - i == 5) ? s[i + 4] : 0.0f, s[i + 3]);
             i += 4;
          }
          break;
@@ -2028,23 +2028,23 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
       case 0x08: // rrcurveto
          if (sp < 6) return _CSERR("rcurveline stack");
          for (; i + 5 < sp; i += 6)
-            _csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
+            _csctx_rccurve_to(c, s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]);
          break;
 
       case 0x18: // rcurveline
          if (sp < 8) return _CSERR("rcurveline stack");
          for (; i + 5 < sp - 2; i += 6)
-            _csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
+            _csctx_rccurve_to(c, s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]);
          if (i + 1 >= sp) return _CSERR("rcurveline stack");
-         _csctx_rline_to(c, s[i], s[i+1]);
+         _csctx_rline_to(c, s[i], s[i + 1]);
          break;
 
       case 0x19: // rlinecurve
          if (sp < 8) return _CSERR("rlinecurve stack");
          for (; i + 1 < sp - 6; i += 2)
-            _csctx_rline_to(c, s[i], s[i+1]);
+            _csctx_rline_to(c, s[i], s[i + 1]);
          if (i + 5 >= sp) return _CSERR("rlinecurve stack");
-         _csctx_rccurve_to(c, s[i], s[i+1], s[i+2], s[i+3], s[i+4], s[i+5]);
+         _csctx_rccurve_to(c, s[i], s[i + 1], s[i + 2], s[i + 3], s[i + 4], s[i + 5]);
          break;
 
       case 0x1A: // vvcurveto
@@ -2054,9 +2054,9 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
          if (sp & 1) { f = s[i]; i++; }
          for (; i + 3 < sp; i += 4) {
             if (b0 == 0x1B)
-               _csctx_rccurve_to(c, s[i], f, s[i+1], s[i+2], s[i+3], 0.0);
+               _csctx_rccurve_to(c, s[i], f, s[i + 1], s[i + 2], s[i + 3], 0.0);
             else
-               _csctx_rccurve_to(c, f, s[i], s[i+1], s[i+2], 0.0, s[i+3]);
+               _csctx_rccurve_to(c, f, s[i], s[i + 1], s[i + 2], 0.0, s[i + 3]);
             f = 0.0;
          }
          break;
@@ -2140,7 +2140,7 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
             dy5 = s[7];
             dx6 = s[8];
             _csctx_rccurve_to(c, dx1, dy1, dx2, dy2, dx3, 0);
-            _csctx_rccurve_to(c, dx4, 0, dx5, dy5, dx6, -(dy1+dy2+dy5));
+            _csctx_rccurve_to(c, dx4, 0, dx5, dy5, dx6, -(dy1 + dy2 + dy5));
             break;
 
          case 0x25: // flex1
@@ -2156,8 +2156,8 @@ private int _run_charstring(const fontinfo *info, int glyph_index, _csctx *c)
             dx5 = s[8];
             dy5 = s[9];
             dx6 = dy6 = s[10];
-            dx = dx1+dx2+dx3+dx4+dx5;
-            dy = dy1+dy2+dy3+dy4+dy5;
+            dx = dx1 + dx2 + dx3 + dx4 + dx5;
+            dy = dy1 + dy2 + dy3 + dy4 + dy5;
             if (fabs(dx) > fabs(dy))
                dy6 = -dy;
             else
@@ -2232,7 +2232,7 @@ public int GetGlyphShape(const fontinfo *info, int glyph_index, vertex **pvertic
 
 public void GetGlyphHMetrics(const fontinfo *info, int glyph_index, int *advanceWidth, int *leftSideBearing)
 {
-   ushort numOfLongHorMetrics = ttUSHORT(info.data+info.hhea + 34);
+   ushort numOfLongHorMetrics = ttUSHORT(info.data + info.hhea + 34);
    if (glyph_index < numOfLongHorMetrics) {
       if (advanceWidth)     *advanceWidth    = ttSHORT(info.data + info.hmtx + 4*glyph_index);
       if (leftSideBearing)  *leftSideBearing = ttSHORT(info.data + info.hmtx + 4*glyph_index + 2);
@@ -2249,12 +2249,12 @@ public int  GetKerningTableLength(const fontinfo *info)
    // we only look at the first table. it must be 'horizontal' and format 0.
    if (!info.kern)
       return 0;
-   if (ttUSHORT(data+2) < 1) // number of tables, need at least 1
+   if (ttUSHORT(data + 2) < 1) // number of tables, need at least 1
       return 0;
-   if (ttUSHORT(data+8) != 1) // horizontal flag must be set in format
+   if (ttUSHORT(data + 8) != 1) // horizontal flag must be set in format
       return 0;
 
-   return ttUSHORT(data+10);
+   return ttUSHORT(data + 10);
 }
 
 public int GetKerningTable(const fontinfo *info, kerningentry* table, int table_length)
@@ -2265,20 +2265,20 @@ public int GetKerningTable(const fontinfo *info, kerningentry* table, int table_
    // we only look at the first table. it must be 'horizontal' and format 0.
    if (!info.kern)
       return 0;
-   if (ttUSHORT(data+2) < 1) // number of tables, need at least 1
+   if (ttUSHORT(data + 2) < 1) // number of tables, need at least 1
       return 0;
-   if (ttUSHORT(data+8) != 1) // horizontal flag must be set in format
+   if (ttUSHORT(data + 8) != 1) // horizontal flag must be set in format
       return 0;
 
-   length = ttUSHORT(data+10);
+   length = ttUSHORT(data + 10);
    if (table_length < length)
       length = table_length;
 
    for (k = 0; k < length; k++)
    {
-      table[k].glyph1 = ttUSHORT(data+18+(k*6));
-      table[k].glyph2 = ttUSHORT(data+20+(k*6));
-      table[k].advance = ttSHORT(data+22+(k*6));
+      table[k].glyph1 = ttUSHORT(data + 18+(k*6));
+      table[k].glyph2 = ttUSHORT(data + 20+(k*6));
+      table[k].advance = ttSHORT(data + 22+(k*6));
    }
 
    return length;
@@ -2293,23 +2293,23 @@ private int _GetGlyphKernInfoAdvance(const fontinfo *info, int glyph1, int glyph
    // we only look at the first table. it must be 'horizontal' and format 0.
    if (!info.kern)
       return 0;
-   if (ttUSHORT(data+2) < 1) // number of tables, need at least 1
+   if (ttUSHORT(data + 2) < 1) // number of tables, need at least 1
       return 0;
-   if (ttUSHORT(data+8) != 1) // horizontal flag must be set in format
+   if (ttUSHORT(data + 8) != 1) // horizontal flag must be set in format
       return 0;
 
    l = 0;
-   r = ttUSHORT(data+10) - 1;
+   r = ttUSHORT(data + 10) - 1;
    needle = glyph1 << 16 | glyph2;
    while (l <= r) {
       m = (l + r) >> 1;
-      straw = ttULONG(data+18+(m*6)); // note: unaligned read
+      straw = ttULONG(data + 18+(m*6)); // note: unaligned read
       if (needle < straw)
          r = m - 1;
       else if (needle > straw)
          l = m + 1;
       else
-         return ttSHORT(data+22+(m*6));
+         return ttSHORT(data + 22+(m*6));
    }
    return 0;
 }
@@ -2433,10 +2433,10 @@ private int _GetGlyphGPOSInfoAdvance(const fontinfo *info, int glyph1, int glyph
 
    data = info.data + info.gpos;
 
-   if (ttUSHORT(data+0) != 1) return 0; // Major version 1
-   if (ttUSHORT(data+2) != 0) return 0; // Minor version 0
+   if (ttUSHORT(data + 0) != 1) return 0; // Major version 1
+   if (ttUSHORT(data + 2) != 0) return 0; // Minor version 0
 
-   lookupListOffset = ttUSHORT(data+8);
+   lookupListOffset = ttUSHORT(data + 8);
    lookupList = data + lookupListOffset;
    lookupCount = ttUSHORT(lookupList);
 
@@ -2561,9 +2561,9 @@ public void GetCodepointHMetrics(const fontinfo *info, int codepoint, int *advan
 
 public void GetFontVMetrics(const fontinfo *info, int *ascent, int *descent, int *lineGap)
 {
-   if (ascent ) *ascent  = ttSHORT(info.data+info.hhea + 4);
-   if (descent) *descent = ttSHORT(info.data+info.hhea + 6);
-   if (lineGap) *lineGap = ttSHORT(info.data+info.hhea + 8);
+   if (ascent ) *ascent  = ttSHORT(info.data + info.hhea + 4);
+   if (descent) *descent = ttSHORT(info.data + info.hhea + 6);
+   if (lineGap) *lineGap = ttSHORT(info.data + info.hhea + 8);
 }
 
 public int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoDescent, int *typoLineGap)
@@ -2571,9 +2571,9 @@ public int  GetFontVMetricsOS2(const fontinfo *info, int *typoAscent, int *typoD
    int tab = _find_table(info.data, info.fontstart, "OS/2");
    if (!tab)
       return 0;
-   if (typoAscent ) *typoAscent  = ttSHORT(info.data+tab + 68);
-   if (typoDescent) *typoDescent = ttSHORT(info.data+tab + 70);
-   if (typoLineGap) *typoLineGap = ttSHORT(info.data+tab + 72);
+   if (typoAscent ) *typoAscent  = ttSHORT(info.data + tab + 68);
+   if (typoDescent) *typoDescent = ttSHORT(info.data + tab + 70);
+   if (typoLineGap) *typoLineGap = ttSHORT(info.data + tab + 72);
    return 1;
 }
 
@@ -2951,7 +2951,7 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
 
 #elif RASTERIZER_VERSION == 2
 
-// the edge passed in here does not cross the vertical line at x or the vertical line at x+1
+// the edge passed in here does not cross the vertical line at x or the vertical line at x + 1
 // (i.e. it has already been clipped to those)
 private void _handle_clipped_edge(float *scanline, int x, _active_edge *e, float x0, float y0, float x1, float y1)
 {
@@ -2970,22 +2970,22 @@ private void _handle_clipped_edge(float *scanline, int x, _active_edge *e, float
    }
 
    if (x0 == x)
-      assert(x1 <= x+1);
-   else if (x0 == x+1)
+      assert(x1 <= x + 1);
+   else if (x0 == x + 1)
       assert(x1 >= x);
    else if (x0 <= x)
       assert(x1 <= x);
-   else if (x0 >= x+1)
-      assert(x1 >= x+1);
+   else if (x0 >= x + 1)
+      assert(x1 >= x + 1);
    else
-      assert(x1 >= x && x1 <= x+1);
+      assert(x1 >= x && x1 <= x + 1);
 
    if (x0 <= x && x1 <= x)
       scanline[x] += e.direction * (y1-y0);
-   else if (x0 >= x+1 && x1 >= x+1)
+   else if (x0 >= x + 1 && x1 >= x + 1)
       ;
    else {
-      assert(x0 >= x && x0 <= x+1 && x1 >= x && x1 <= x+1);
+      assert(x0 >= x && x0 <= x + 1 && x1 >= x && x1 <= x + 1);
       scanline[x] += e.direction * (y1-y0) * (1-((x0-x)+(x1-x))/2); // coverage = 1 - average x position
    }
 }
@@ -3009,7 +3009,7 @@ private float _sized_triangle_area(float height, float width)
 
 private void _fill_active_edges_new(float *scanline, float *scanline_fill, int len, _active_edge *e, float y_top)
 {
-   float y_bottom = y_top+1;
+   float y_bottom = y_top + 1;
 
    while (e) {
       // brute force every pixel
@@ -3022,7 +3022,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
          if (x0 < len) {
             if (x0 >= 0) {
                _handle_clipped_edge(scanline,(int) x0, e, x0, y_top, x0, y_bottom);
-               _handle_clipped_edge(scanline_fill-1,(int) x0+1, e, x0, y_top, x0, y_bottom);
+               _handle_clipped_edge(scanline_fill-1,(int) x0 + 1, e, x0, y_top, x0, y_bottom);
             } else {
                _handle_clipped_edge(scanline_fill-1, 0, e, x0, y_top, x0, y_bottom);
             }
@@ -3063,7 +3063,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                int x = (int) x_top;
                height = (sy1 - sy0) * e.direction;
                assert(x >= 0 && x < len);
-               scanline[x]      += _position_trapezoid_area(height, x_top, x+1.0f, x_bottom, x+1.0f);
+               scanline[x]      += _position_trapezoid_area(height, x_top, x + 1.0f, x_bottom, x + 1.0f);
                scanline_fill[x] += height; // everything right of this pixel is filled
             } else {
                int x, x1, x2;
@@ -3085,8 +3085,8 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
 
                x1 = (int) x_top;
                x2 = (int) x_bottom;
-               // compute intersection with y axis at x1+1
-               y_crossing = y_top + dy * (x1+1 - x0);
+               // compute intersection with y axis at x1 + 1
+               y_crossing = y_top + dy * (x1 + 1 - x0);
 
                // compute intersection with y axis at x2
                y_final = y_top + dy * (x2 - x0);
@@ -3118,13 +3118,13 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                // area of the rectangle covered from sy0..y_crossing
                area = sign * (y_crossing-sy0);
 
-               // area of the triangle (x_top, sy0), (x1+1, sy0), (x1+1, y_crossing)
-               scanline[x1] += _sized_triangle_area(area, x1+1 - x_top);
+               // area of the triangle (x_top, sy0), (x1 + 1, sy0), (x1 + 1, y_crossing)
+               scanline[x1] += _sized_triangle_area(area, x1 + 1 - x_top);
 
                // check if final y_crossing is blown up; no test case for this
                if (y_final > y_bottom) {
                   y_final = y_bottom;
-                  dy = (y_final - y_crossing ) / (x2 - (x1+1)); // if denom = 0, y_final = y_crossing, so y_final <= y_bottom
+                  dy = (y_final - y_crossing ) / (x2 - (x1 + 1)); // if denom = 0, y_final = y_crossing, so y_final <= y_bottom
                }
 
                // in second pixel, area covered by line segment found in first pixel
@@ -3141,7 +3141,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                // which multiplied by 1-pixel-width is how much pixel area changes for each step in x
                // so the area advances by 'step' every time
 
-               for (x = x1+1; x < x2; ++x) {
+               for (x = x1 + 1; x < x2; ++x) {
                   scanline[x] += area + step/2; // area of trapezoid is 1*step/2
                   area += step;
                }
@@ -3150,7 +3150,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
 
                // area covered in the last pixel is the rectangle from all the pixels to the left,
                // plus the trapezoid filled by the line segment in this pixel all the way to the right edge
-               scanline[x2] += area + sign * _position_trapezoid_area(sy1-y_final, (float) x2, x2+1.0f, x_bottom, x2+1.0f);
+               scanline[x2] += area + sign * _position_trapezoid_area(sy1-y_final, (float) x2, x2 + 1.0f, x_bottom, x2 + 1.0f);
 
                // the rest of the line is filled based on the total height of the line segment in this pixel
                scanline_fill[x2] += sign * (sy1-sy0);
@@ -3181,7 +3181,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                // rename variables to clearly-defined pairs
                float y0 = y_top;
                float x1 = (float) (x);
-               float x2 = (float) (x+1);
+               float x2 = (float) (x + 1);
                float x3 = xb;
                float y3 = y_bottom;
 
@@ -3189,7 +3189,7 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                // (y-y_top) = (x - e.x) / e.dx
                // y = (x - e.x) / e.dx + y_top
                float y1 = (x - x0) / dx + y_top;
-               float y2 = (x+1 - x0) / dx + y_top;
+               float y2 = (x + 1 - x0) / dx + y_top;
 
                if (x0 < x1 && x3 > x2) {         // three segments descending down-right
                   _handle_clipped_edge(scanline, x, e, x0, y0, x1, y1);
@@ -3205,10 +3205,10 @@ private void _fill_active_edges_new(float *scanline, float *scanline_fill, int l
                } else if (x3 < x1 && x0 > x1) {  // two segments across x, down-left
                   _handle_clipped_edge(scanline, x, e, x0, y0, x1, y1);
                   _handle_clipped_edge(scanline, x, e, x1, y1, x3, y3);
-               } else if (x0 < x2 && x3 > x2) {  // two segments across x+1, down-right
+               } else if (x0 < x2 && x3 > x2) {  // two segments across x + 1, down-right
                   _handle_clipped_edge(scanline, x, e, x0, y0, x2, y2);
                   _handle_clipped_edge(scanline, x, e, x2, y2, x3, y3);
-               } else if (x3 < x2 && x0 > x2) {  // two segments across x+1, down-left
+               } else if (x3 < x2 && x0 > x2) {  // two segments across x + 1, down-left
                   _handle_clipped_edge(scanline, x, e, x0, y0, x2, y2);
                   _handle_clipped_edge(scanline, x, e, x2, y2, x3, y3);
                } else {  // one segment
@@ -3232,7 +3232,7 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
    _NOTUSED(vsubsample);
 
    if (result.w > 64)
-      scanline = (float *) malloc((result.w*2+1) * sizeof(float), userdata);
+      scanline = (float *) malloc((result.w*2 + 1) * sizeof(float), userdata);
    else
       scanline = scanline_data;
 
@@ -3248,7 +3248,7 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
       _active_edge **step = &active;
 
       memset(scanline , 0, result.w*sizeof(scanline[0]));
-      memset(scanline2, 0, (result.w+1)*sizeof(scanline[0]));
+      memset(scanline2, 0, (result.w + 1)*sizeof(scanline[0]));
 
       // update all active edges;
       // remove all active edges that terminate before the top of this scanline
@@ -3286,7 +3286,7 @@ private void _rasterize_sorted_edges(_bitmap *result, _edge *e, int n, int vsubs
 
       // now process all active edges
       if (active)
-         _fill_active_edges_new(scanline, scanline2+1, result.w, active, scan_y_top);
+         _fill_active_edges_new(scanline, scanline2 + 1, result.w, active, scan_y_top);
 
       {
          float sum = 0;
@@ -3395,10 +3395,10 @@ private void _sort_edges_quicksort(_edge *p, int n)
       /* recurse on smaller side, iterate on larger */
       if (j < (n-i)) {
          _sort_edges_quicksort(p, j);
-         p = p+i;
+         p = p + i;
          n = n-i;
       } else {
-         _sort_edges_quicksort(p+i, n-i);
+         _sort_edges_quicksort(p + i, n-i);
          n = j;
       }
    }
@@ -3434,7 +3434,7 @@ private void _rasterize(_bitmap *result, _point *pts, int *wcount, int windings,
    for (i = 0; i < windings; ++i)
       n += wcount[i];
 
-   e = (_edge *) malloc(sizeof(*e) * (n+1), userdata); // add an extra one as a sentinel
+   e = (_edge *) malloc(sizeof(*e) * (n + 1), userdata); // add an extra one as a sentinel
    if (e == 0) return;
    n = 0;
 
@@ -3486,16 +3486,16 @@ private int _tesselate_curve(_point *points, int *num_points, float x0, float y0
    float mx = (x0 + 2*x1 + x2)/4;
    float my = (y0 + 2*y1 + y2)/4;
    // versus directly drawn line
-   float dx = (x0+x2)/2 - mx;
-   float dy = (y0+y2)/2 - my;
+   float dx = (x0 + x2)/2 - mx;
+   float dy = (y0 + y2)/2 - my;
    if (n > 16) // 65536 segments on one curve better be enough!
       return 1;
-   if (dx*dx+dy*dy > objspace_flatness_squared) { // half-pixel error allowed... need to be smaller if AA
-      _tesselate_curve(points, num_points, x0, y0, (x0+x1)/2.0f,(y0+y1)/2.0f, mx, my, objspace_flatness_squared, n+1);
-      _tesselate_curve(points, num_points, mx, my, (x1+x2)/2.0f,(y1+y2)/2.0f, x2, y2, objspace_flatness_squared, n+1);
+   if (dx*dx + dy*dy > objspace_flatness_squared) { // half-pixel error allowed... need to be smaller if AA
+      _tesselate_curve(points, num_points, x0, y0, (x0 + x1)/2.0f,(y0 + y1)/2.0f, mx, my, objspace_flatness_squared, n + 1);
+      _tesselate_curve(points, num_points, mx, my, (x1 + x2)/2.0f,(y1 + y2)/2.0f, x2, y2, objspace_flatness_squared, n + 1);
    } else {
       _add_point(points, *num_points, x2, y2);
-      *num_points = *num_points+1;
+      *num_points = *num_points + 1;
    }
    return 1;
 }
@@ -3511,34 +3511,34 @@ private void _tesselate_cubic(_point *points, int *num_points, float x0, float y
    float dy2 = y3-y2;
    float dx = x3-x0;
    float dy = y3-y0;
-   float longlen = (float) (sqrt(dx0*dx0+dy0*dy0)+sqrt(dx1*dx1+dy1*dy1)+sqrt(dx2*dx2+dy2*dy2));
-   float shortlen = (float) sqrt(dx*dx+dy*dy);
+   float longlen = (float) (sqrt(dx0*dx0 + dy0*dy0)+sqrt(dx1*dx1 + dy1*dy1)+sqrt(dx2*dx2 + dy2*dy2));
+   float shortlen = (float) sqrt(dx*dx + dy*dy);
    float flatness_squared = longlen*longlen-shortlen*shortlen;
 
    if (n > 16) // 65536 segments on one curve better be enough!
       return;
 
    if (flatness_squared > objspace_flatness_squared) {
-      float x01 = (x0+x1)/2;
-      float y01 = (y0+y1)/2;
-      float x12 = (x1+x2)/2;
-      float y12 = (y1+y2)/2;
-      float x23 = (x2+x3)/2;
-      float y23 = (y2+y3)/2;
+      float x01 = (x0 + x1)/2;
+      float y01 = (y0 + y1)/2;
+      float x12 = (x1 + x2)/2;
+      float y12 = (y1 + y2)/2;
+      float x23 = (x2 + x3)/2;
+      float y23 = (y2 + y3)/2;
 
-      float xa = (x01+x12)/2;
-      float ya = (y01+y12)/2;
-      float xb = (x12+x23)/2;
-      float yb = (y12+y23)/2;
+      float xa = (x01 + x12)/2;
+      float ya = (y01 + y12)/2;
+      float xb = (x12 + x23)/2;
+      float yb = (y12 + y23)/2;
 
-      float mx = (xa+xb)/2;
-      float my = (ya+yb)/2;
+      float mx = (xa + xb)/2;
+      float my = (ya + yb)/2;
 
-      _tesselate_cubic(points, num_points, x0, y0, x01, y01, xa, ya, mx, my, objspace_flatness_squared, n+1);
-      _tesselate_cubic(points, num_points, mx, my, xb, yb, x23, y23, x3, y3, objspace_flatness_squared, n+1);
+      _tesselate_cubic(points, num_points, x0, y0, x01, y01, xa, ya, mx, my, objspace_flatness_squared, n + 1);
+      _tesselate_cubic(points, num_points, mx, my, xb, yb, x23, y23, x3, y3, objspace_flatness_squared, n + 1);
    } else {
       _add_point(points, *num_points, x3, y3);
-      *num_points = *num_points+1;
+      *num_points = *num_points + 1;
    }
 }
 
@@ -3767,9 +3767,9 @@ private int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (
          y = bottom_y, x = 1; // advance to next row
       if (y + gh + 1 >= ph) // check if it fits vertically AFTER potentially moving to next row
          return -i;
-      assert(x+gw < pw);
-      assert(y+gh < ph);
-      MakeGlyphBitmap(&f, pixels+x+y*pw, gw, gh, pw, scale, scale, g);
+      assert(x + gw < pw);
+      assert(y + gh < ph);
+      MakeGlyphBitmap(&f, pixels + x + y*pw, gw, gh, pw, scale, scale, g);
       chardata[i].x0 = (short) x;
       chardata[i].y0 = (short) y;
       chardata[i].x1 = (short) (x + gw);
@@ -3778,8 +3778,8 @@ private int BakeFontBitmap_internal(ubyte *data, int offset,  // font location (
       chardata[i].xoff     = (float) x0;
       chardata[i].yoff     = (float) y0;
       x = x + gw + 1;
-      if (y+gh+1 > bottom_y)
-         bottom_y = y+gh+1;
+      if (y + gh + 1 > bottom_y)
+         bottom_y = y + gh + 1;
    }
    return bottom_y;
 }
@@ -3955,35 +3955,35 @@ private void _h_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint
          case 2:
             for (i = 0; i <= safe_w; ++i) {
                total += pixels[i] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i];
                pixels[i] = (ubyte) (total / 2);
             }
             break;
          case 3:
             for (i = 0; i <= safe_w; ++i) {
                total += pixels[i] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i];
                pixels[i] = (ubyte) (total / 3);
             }
             break;
          case 4:
             for (i = 0; i <= safe_w; ++i) {
                total += pixels[i] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i];
                pixels[i] = (ubyte) (total / 4);
             }
             break;
          case 5:
             for (i = 0; i <= safe_w; ++i) {
                total += pixels[i] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i];
                pixels[i] = (ubyte) (total / 5);
             }
             break;
          default:
             for (i = 0; i <= safe_w; ++i) {
                total += pixels[i] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i];
                pixels[i] = (ubyte) (total / kernel_width);
             }
             break;
@@ -4017,35 +4017,35 @@ private void _v_prefilter(ubyte *pixels, int w, int h, int stride_in_bytes, uint
          case 2:
             for (i = 0; i <= safe_h; ++i) {
                total += pixels[i*stride_in_bytes] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
                pixels[i*stride_in_bytes] = (ubyte) (total / 2);
             }
             break;
          case 3:
             for (i = 0; i <= safe_h; ++i) {
                total += pixels[i*stride_in_bytes] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
                pixels[i*stride_in_bytes] = (ubyte) (total / 3);
             }
             break;
          case 4:
             for (i = 0; i <= safe_h; ++i) {
                total += pixels[i*stride_in_bytes] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
                pixels[i*stride_in_bytes] = (ubyte) (total / 4);
             }
             break;
          case 5:
             for (i = 0; i <= safe_h; ++i) {
                total += pixels[i*stride_in_bytes] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
                pixels[i*stride_in_bytes] = (ubyte) (total / 5);
             }
             break;
          default:
             for (i = 0; i <= safe_h; ++i) {
                total += pixels[i*stride_in_bytes] - buffer[i & _OVER_MASK];
-               buffer[(i+kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
+               buffer[(i + kernel_width) & _OVER_MASK] = pixels[i*stride_in_bytes];
                pixels[i*stride_in_bytes] = (ubyte) (total / kernel_width);
             }
             break;
@@ -4173,8 +4173,8 @@ public int PackFontRangesRenderIntoRects(pack_context *spc, const fontinfo *info
                                     &x0,&y0,&x1,&y1);
             MakeGlyphBitmapSubpixel(info,
                                           spc.pixels + r.x + r.y*spc.stride_in_bytes,
-                                          r.w - spc.h_oversample+1,
-                                          r.h - spc.v_oversample+1,
+                                          r.w - spc.h_oversample + 1,
+                                          r.h - spc.v_oversample + 1,
                                           spc.stride_in_bytes,
                                           scale * spc.h_oversample,
                                           scale * spc.v_oversample,
@@ -4342,7 +4342,7 @@ private int _ray_intersect_bezier(float orig[2], float ray[2], float q0[2], floa
       if (discr > 0.0) {
          float rcpna = -1 / a;
          float d = (float) sqrt(discr);
-         s0 = (b+d) * rcpna;
+         s0 = (b + d) * rcpna;
          s1 = (b-d) * rcpna;
          if (s0 >= 0.0 && s0 <= 1.0)
             num_s = 1;
@@ -4375,11 +4375,11 @@ private int _ray_intersect_bezier(float orig[2], float ray[2], float q0[2], floa
       float q0rd = q0d - rod;
 
       hits[0][0] = q0rd + s0*(2.0f - 2.0f*s0)*q10d + s0*s0*q20d;
-      hits[0][1] = a*s0+b;
+      hits[0][1] = a*s0 + b;
 
       if (num_s > 1) {
          hits[1][0] = q0rd + s1*(2.0f - 2.0f*s1)*q10d + s1*s1*q20d;
-         hits[1][1] = a*s1+b;
+         hits[1][1] = a*s1 + b;
          return 2;
       } else {
          return 1;
@@ -4593,8 +4593,8 @@ public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int pad
                      // minimize (x'-sx)*(x'-sx)+(y'-sy)*(y'-sy)
                      float dx = x1-x0, dy = y1-y0;
                      float px = x0-sx, py = y0-sy;
-                     // minimize (px+t*dx)^2 + (py+t*dy)^2 = px*px + 2*px*dx*t + t^2*dx*dx + py*py + 2*py*dy*t + t^2*dy*dy
-                     // derivative: 2*px*dx + 2*py*dy + (2*dx*dx+2*dy*dy)*t, set to 0 and solve
+                     // minimize (px + t*dx)^2 + (py + t*dy)^2 = px*px + 2*px*dx*t + t^2*dx*dx + py*py + 2*py*dy*t + t^2*dy*dy
+                     // derivative: 2*px*dx + 2*py*dy + (2*dx*dx + 2*dy*dy)*t, set to 0 and solve
                      float t = -(px*dx + py*dy) / (dx*dx + dy*dy);
                      if (t >= 0.0f && t <= 1.0f)
                         min_dist = dist;
@@ -4607,7 +4607,7 @@ public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int pad
                   float box_x1 = max(max(x0, x1),x2);
                   float box_y1 = max(max(y0, y1),y2);
                   // coarse culling against bbox to avoid computing cubic unnecessarily
-                  if (sx > box_x0-min_dist && sx < box_x1+min_dist && sy > box_y0-min_dist && sy < box_y1+min_dist) {
+                  if (sx > box_x0-min_dist && sx < box_x1 + min_dist && sy > box_y0-min_dist && sy < box_y1 + min_dist) {
                      int num = 0;
                      float ax = x1-x0, ay = y1-y0;
                      float bx = x0 - 2*x1 + x2, by = y0 - 2*y1 + y2;
@@ -4617,8 +4617,8 @@ public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int pad
                      float a_inv = precompute[i];
                      if (a_inv == 0.0) { // if a_inv is 0, it's 2nd degree so use quadratic formula
                         float a = 3*(ax*bx + ay*by);
-                        float b = 2*(ax*ax + ay*ay) + (mx*bx+my*by);
-                        float c = mx*ax+my*ay;
+                        float b = 2*(ax*ax + ay*ay) + (mx*bx + my*by);
+                        float c = mx*ax + my*ay;
                         if (fabs(a) < eps2) { // if a is 0, it's linear
                            if (fabs(b) >= eps2) {
                               res[num++] = -c/b;
@@ -4636,8 +4636,8 @@ public ubyte * GetGlyphSDF(const fontinfo *info, float scale, int glyph, int pad
                         }
                      } else {
                         float b = 3*(ax*bx + ay*by) * a_inv; // could precompute this as it doesn't depend on sample point
-                        float c = (2*(ax*ax + ay*ay) + (mx*bx+my*by)) * a_inv;
-                        float d = (mx*ax+my*ay) * a_inv;
+                        float c = (2*(ax*ax + ay*ay) + (mx*bx + my*by)) * a_inv;
+                        float d = (mx*ax + my*ay) * a_inv;
                         num = _solve_cubic(b, c, d, res);
                      }
                      dist2 = (x0-sx)*(x0-sx) + (y0-sy)*(y0-sy);
@@ -4714,13 +4714,13 @@ private int _CompareUTF8toUTF16_bigendian_prefix(ubyte *s1, int len1, ubyte *s2,
          if (i >= len1) return -1;
          if (s1[i++] != ch) return -1;
       } else if (ch < 0x800) {
-         if (i+1 >= len1) return -1;
+         if (i + 1 >= len1) return -1;
          if (s1[i++] != 0xc0 + (ch >> 6)) return -1;
          if (s1[i++] != 0x80 + (ch & 0x3f)) return -1;
       } else if (ch >= 0xd800 && ch < 0xdc00) {
          uint c;
          ushort ch2 = s2[2]*256 + s2[3];
-         if (i+3 >= len1) return -1;
+         if (i + 3 >= len1) return -1;
          c = ((ch - 0xd800) << 10) + (ch2 - 0xdc00) + 0x10000;
          if (s1[i++] != 0xf0 + (c >> 18)) return -1;
          if (s1[i++] != 0x80 + ((c >> 12) & 0x3f)) return -1;
@@ -4731,7 +4731,7 @@ private int _CompareUTF8toUTF16_bigendian_prefix(ubyte *s1, int len1, ubyte *s2,
       } else if (ch >= 0xdc00 && ch < 0xe000) {
          return -1;
       } else {
-         if (i+2 >= len1) return -1;
+         if (i + 2 >= len1) return -1;
          if (s1[i++] != 0xe0 + (ch >> 12)) return -1;
          if (s1[i++] != 0x80 + ((ch >> 6) & 0x3f)) return -1;
          if (s1[i++] != 0x80 + ((ch     ) & 0x3f)) return -1;
@@ -4757,14 +4757,14 @@ public const char *GetFontNameString(const fontinfo *font, int *length, int plat
    uint nm = _find_table(fc, offset, "name");
    if (!nm) return null;
 
-   count = ttUSHORT(fc+nm+2);
-   stringOffset = nm + ttUSHORT(fc+nm+4);
+   count = ttUSHORT(fc + nm + 2);
+   stringOffset = nm + ttUSHORT(fc + nm + 4);
    for (i = 0; i < count; ++i) {
       uint loc = nm + 6 + 12 * i;
-      if (platformID == ttUSHORT(fc+loc+0) && encodingID == ttUSHORT(fc+loc+2)
-          && languageID == ttUSHORT(fc+loc+4) && nameID == ttUSHORT(fc+loc+6)) {
-         *length = ttUSHORT(fc+loc+8);
-         return (const char *) (fc+stringOffset+ttUSHORT(fc+loc+10));
+      if (platformID == ttUSHORT(fc + loc + 0) && encodingID == ttUSHORT(fc + loc + 2)
+          && languageID == ttUSHORT(fc + loc + 4) && nameID == ttUSHORT(fc + loc + 6)) {
+         *length = ttUSHORT(fc + loc + 8);
+         return (const char *) (fc + stringOffset + ttUSHORT(fc + loc + 10));
       }
    }
    return null;
@@ -4773,34 +4773,34 @@ public const char *GetFontNameString(const fontinfo *font, int *length, int plat
 private int _matchpair(ubyte *fc, uint nm, ubyte *name, int nlen, int target_id, int next_id)
 {
    int i;
-   int count = ttUSHORT(fc+nm+2);
-   int stringOffset = nm + ttUSHORT(fc+nm+4);
+   int count = ttUSHORT(fc + nm + 2);
+   int stringOffset = nm + ttUSHORT(fc + nm + 4);
 
    for (i = 0; i < count; ++i) {
       uint loc = nm + 6 + 12 * i;
-      int id = ttUSHORT(fc+loc+6);
+      int id = ttUSHORT(fc + loc + 6);
       if (id == target_id) {
          // find the encoding
-         int platform = ttUSHORT(fc+loc+0), encoding = ttUSHORT(fc+loc+2), language = ttUSHORT(fc+loc+4);
+         int platform = ttUSHORT(fc + loc + 0), encoding = ttUSHORT(fc + loc + 2), language = ttUSHORT(fc + loc + 4);
 
          // is this a Unicode encoding?
          if (platform == 0 || (platform == 3 && encoding == 1) || (platform == 3 && encoding == 10)) {
-            int slen = ttUSHORT(fc+loc+8);
-            int off = ttUSHORT(fc+loc+10);
+            int slen = ttUSHORT(fc + loc + 8);
+            int off = ttUSHORT(fc + loc + 10);
 
             // check if there's a prefix match
-            int matchlen = _CompareUTF8toUTF16_bigendian_prefix(name, nlen, fc+stringOffset+off, slen);
+            int matchlen = _CompareUTF8toUTF16_bigendian_prefix(name, nlen, fc + stringOffset + off, slen);
             if (matchlen >= 0) {
-               // check for target_id+1 immediately following, with same encoding & language
-               if (i+1 < count && ttUSHORT(fc+loc+12+6) == next_id && ttUSHORT(fc+loc+12) == platform && ttUSHORT(fc+loc+12+2) == encoding && ttUSHORT(fc+loc+12+4) == language) {
-                  slen = ttUSHORT(fc+loc+12+8);
-                  off = ttUSHORT(fc+loc+12+10);
+               // check for target_id + 1 immediately following, with same encoding & language
+               if (i + 1 < count && ttUSHORT(fc + loc + 12 + 6) == next_id && ttUSHORT(fc + loc + 12) == platform && ttUSHORT(fc + loc + 12 + 2) == encoding && ttUSHORT(fc + loc + 12 + 4) == language) {
+                  slen = ttUSHORT(fc + loc + 12 + 8);
+                  off = ttUSHORT(fc + loc + 12 + 10);
                   if (slen == 0) {
                      if (matchlen == nlen)
                         return 1;
                   } else if (matchlen < nlen && name[matchlen] == ' ') {
                      ++matchlen;
-                     if (CompareUTF8toUTF16_bigendian_internal((ubyte*) (name+matchlen), nlen-matchlen, (ubyte*)(fc+stringOffset+off),slen))
+                     if (CompareUTF8toUTF16_bigendian_internal((ubyte*) (name + matchlen), nlen-matchlen, (ubyte*)(fc + stringOffset + off),slen))
                         return 1;
                   }
                } else {
@@ -4821,12 +4821,12 @@ private int _matches(ubyte *fc, uint offset, ubyte *name, int flags)
 {
    int nlen = (int) strlen((ubyte *) name);
    uint nm, hd;
-   if (!_isfont(fc+offset)) return 0;
+   if (!_isfont(fc + offset)) return 0;
 
    // check italics/bold/underline flags in macStyle...
    if (flags) {
       hd = _find_table(fc, offset, "head");
-      if ((ttUSHORT(fc+hd+44) & 7) != (flags & 7)) return 0;
+      if ((ttUSHORT(fc + hd + 44) & 7) != (flags & 7)) return 0;
    }
 
    nm = _find_table(fc, offset, "name");
